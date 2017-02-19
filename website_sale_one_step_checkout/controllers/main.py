@@ -22,6 +22,7 @@ class WebsiteSale(WebsiteSale):
         normal = super(WebsiteSale, self).checkout(**post)
 
         if not request.website.use_osc:
+            print "ABOUT TO RETURN NORMAL WEBSITESALE FUNCTION"
             return normal
 
         # must have a draft sale order with lines at this point, otherwise reset
