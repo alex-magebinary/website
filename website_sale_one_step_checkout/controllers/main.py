@@ -94,116 +94,124 @@ class WebsiteSale(WebsiteSale):
         checkout = values['checkout']
         checkout.update(post)
 
+        # TODO: Remove this once below part is adapted
+        if 'sale_last_order_id' not in request.session:
+            print "==================================="
+            print "NO LAST ORDER; ABOUT TO WRITE sale_last_order_id"
+            print "==================================="
+            request.session['sale_last_order_id'] = request.website.sale_get_order().id
 
-        # see website_sale.main > address()
-        # IF PUBLIC ORDER
-        if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-            mode = ('new', 'billing')
-            country_code = request.session['geoip'].get('country_code')
-            if country_code:
-                def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
-            else:
-                def_country_id = request.website.user_id.sudo().country_id
-        # IF ORDER LINKED TO A PARTNER
-        else:
-            if partner_id > 0:
-                if partner_id == order.partner_id.id:
-                    mode = ('edit', 'billing')
-                else:
-                    shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
-                    if partner_id in shippings.mapped('id'):
-                        mode = ('edit', 'shipping')
-                    else:
-                        return Forbidden()
-                if mode:
-                    values = Partner.browse(partner_id)
-            elif partner_id == -1:
-                mode = ('new', 'shipping')
-            else:  # no mode - refresh without post?
-                return request.redirect('/shop/checkout')
 
-        # TODO: adapt this part
-        values['error'] = self.checkout_form_validate(mode, checkout, checkout)
-        if values['error']:
-            return {
-                'success': False,
-                'errors': values['error']
-            }
-
-        company = None
-        if 'company' in checkout:
-            companies = orm_partner.sudo().search([('name', 'ilike', checkout['company']),
-                                                   ('is_company', '=', True)])
-            company = (companies and companies[0]) or orm_partner.sudo().create({
-                'name': checkout['company'],
-                'is_company': True
-            })
-
-        checkout['street_name'] = checkout.get('street')
-        if checkout.get('street_number'):
-            checkout['street'] = checkout.get('street') + ' ' + checkout.get('street_number')
-
-        billing_info = dict((k, v) for k, v in checkout.items()
-                            if 'shipping_' not in k and k != 'company')
-        billing_info['parent_id'] = (company and company.id) or None
-
-        partner = None
-        if request.uid != request.website.user_id.id:
-            partner = request.env['res.users'].sudo().browse(request.uid).partner_id
-        elif order.partner_id:
-            users = request.env['res.users'].sudo().search([
-                ('active', '=', False), ('partner_id', '=', order.partner_id.id)])
-            if not users or request.website.user_id.id not in users.ids:
-                partner = order.partner_id
-
-        if partner:
-            partner.sudo().write(billing_info)
-        else:
-            partner = orm_partner.sudo().create(billing_info)
-
-        shipping_partner = None
-        if int(checkout.get('shipping_id')) == -1:
-            shipping_info = {
-                'phone': post['shipping_phone'],
-                'zip': post['shipping_zip'],
-                'street': post['shipping_street'] + ' ' + post.get('shipping_street_number'),
-                'street_name': post['shipping_street'],
-                'street_number': post['shipping_street_number'],
-                'city': post['shipping_city'],
-                'name': post['shipping_name'],
-                'email': post['email'],
-                'type': 'delivery',
-                'parent_id': partner.id,
-                'country_id': post['shipping_country_id'],
-                'state_id': post['shipping_state_id'],
-            }
-            domain = [(key, '_id' in key and '=' or 'ilike', '_id' in key and value and int(
-                value) or value)
-                      for key, value in shipping_info.items() if key in
-                      self.mandatory_billing_fields + ['type', 'parent_id']]
-            shipping_partners = orm_partner.sudo().search(domain)
-            if shipping_partners:
-                shipping_partner = shipping_partners[0]
-                shipping_partner.write(shipping_info)
-            else:
-                shipping_partner = orm_partner.sudo().create(shipping_info)
-
-        order_info = {
-            'partner_id': partner.id,
-            'message_follower_ids': [(4, partner.id), (3, request.website.partner_id.id)],
-            'partner_invoice_id': partner.id
-        }
-        order_info.update(request.env['sale.order'].sudo().onchange_partner_id(
-            partner.id)['value'])
-        # we need to update partner_shipping_id after onchange_partner_id() call
-        # otherwise the deselection of the option 'Ship to a different address'
-        # would be overwritten by an existing shipping partner type
-        order_info.update({
-            'partner_shipping_id': (shipping_partner and shipping_partner.id) or partner.id})
-        order_info.pop('user_id')
-
-        order.sudo().write(order_info)
-        request.session['sale_last_order_id'] = order.id
+        # TODO: Adapt this part for address validation
+        # # see website_sale.main > address()
+        # # IF PUBLIC ORDER
+        # if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
+        #     mode = ('new', 'billing')
+        #     country_code = request.session['geoip'].get('country_code')
+        #     if country_code:
+        #         def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
+        #     else:
+        #         def_country_id = request.website.user_id.sudo().country_id
+        # # IF ORDER LINKED TO A PARTNER
+        # else:
+        #     if partner_id > 0:
+        #         if partner_id == order.partner_id.id:
+        #             mode = ('edit', 'billing')
+        #         else:
+        #             shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
+        #             if partner_id in shippings.mapped('id'):
+        #                 mode = ('edit', 'shipping')
+        #             else:
+        #                 return Forbidden()
+        #         if mode:
+        #             values = Partner.browse(partner_id)
+        #     elif partner_id == -1:
+        #         mode = ('new', 'shipping')
+        #     else:  # no mode - refresh without post?
+        #         return request.redirect('/shop/checkout')
+        #
+        # # TODO: adapt this part
+        # values['error'] = self.checkout_form_validate(mode, checkout, checkout)
+        # if values['error']:
+        #     return {
+        #         'success': False,
+        #         'errors': values['error']
+        #     }
+        #
+        # company = None
+        # if 'company' in checkout:
+        #     companies = orm_partner.sudo().search([('name', 'ilike', checkout['company']),
+        #                                            ('is_company', '=', True)])
+        #     company = (companies and companies[0]) or orm_partner.sudo().create({
+        #         'name': checkout['company'],
+        #         'is_company': True
+        #     })
+        #
+        # checkout['street_name'] = checkout.get('street')
+        # if checkout.get('street_number'):
+        #     checkout['street'] = checkout.get('street') + ' ' + checkout.get('street_number')
+        #
+        # billing_info = dict((k, v) for k, v in checkout.items()
+        #                     if 'shipping_' not in k and k != 'company')
+        # billing_info['parent_id'] = (company and company.id) or None
+        #
+        # partner = None
+        # if request.uid != request.website.user_id.id:
+        #     partner = request.env['res.users'].sudo().browse(request.uid).partner_id
+        # elif order.partner_id:
+        #     users = request.env['res.users'].sudo().search([
+        #         ('active', '=', False), ('partner_id', '=', order.partner_id.id)])
+        #     if not users or request.website.user_id.id not in users.ids:
+        #         partner = order.partner_id
+        #
+        # if partner:
+        #     partner.sudo().write(billing_info)
+        # else:
+        #     partner = orm_partner.sudo().create(billing_info)
+        #
+        # shipping_partner = None
+        # if int(checkout.get('shipping_id')) == -1:
+        #     shipping_info = {
+        #         'phone': post['shipping_phone'],
+        #         'zip': post['shipping_zip'],
+        #         'street': post['shipping_street'] + ' ' + post.get('shipping_street_number'),
+        #         'street_name': post['shipping_street'],
+        #         'street_number': post['shipping_street_number'],
+        #         'city': post['shipping_city'],
+        #         'name': post['shipping_name'],
+        #         'email': post['email'],
+        #         'type': 'delivery',
+        #         'parent_id': partner.id,
+        #         'country_id': post['shipping_country_id'],
+        #         'state_id': post['shipping_state_id'],
+        #     }
+        #     domain = [(key, '_id' in key and '=' or 'ilike', '_id' in key and value and int(
+        #         value) or value)
+        #               for key, value in shipping_info.items() if key in
+        #               self.mandatory_billing_fields + ['type', 'parent_id']]
+        #     shipping_partners = orm_partner.sudo().search(domain)
+        #     if shipping_partners:
+        #         shipping_partner = shipping_partners[0]
+        #         shipping_partner.write(shipping_info)
+        #     else:
+        #         shipping_partner = orm_partner.sudo().create(shipping_info)
+        #
+        # order_info = {
+        #     'partner_id': partner.id,
+        #     'message_follower_ids': [(4, partner.id), (3, request.website.partner_id.id)],
+        #     'partner_invoice_id': partner.id
+        # }
+        # order_info.update(request.env['sale.order'].sudo().onchange_partner_id(
+        #     partner.id)['value'])
+        # # we need to update partner_shipping_id after onchange_partner_id() call
+        # # otherwise the deselection of the option 'Ship to a different address'
+        # # would be overwritten by an existing shipping partner type
+        # order_info.update({
+        #     'partner_shipping_id': (shipping_partner and shipping_partner.id) or partner.id})
+        # order_info.pop('user_id')
+        #
+        # order.sudo().write(order_info)
+        # request.session['sale_last_order_id'] = order.id
         return {'success': True}
 
     @http.route(['/shop/checkout/change_delivery'], type='json', auth="public", website=True, multilang=True)

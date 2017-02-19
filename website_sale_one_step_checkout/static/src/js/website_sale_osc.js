@@ -52,6 +52,12 @@ odoo.define("website_sale_osc", function (require) {
     console.log("end of jsconRpc call");
   }
 
+  function validateAddress(ev) {
+        //Todo: this is now just preliminary to set the last_order_id.
+      alert("Validating Adress");
+      ajax.jsonRpc('/shop/checkout/confirm_address/', 'call');//, data);
+    };
+
   function startTransaction(acquirer_id, form){
         alert("Start Transaction");
     form.off('submit');
@@ -61,6 +67,7 @@ odoo.define("website_sale_osc", function (require) {
       });
       return false;
   };
+
   //
   base.dom_ready.done(function () {
 
@@ -103,6 +110,9 @@ odoo.define("website_sale_osc", function (require) {
     $('#col-3 .js_payment').on('click', 'form button[type=submit]', function(ev) {
       ev.preventDefault();
       ev.stopPropagation();
+      // validate address and set last_order_id
+      validateAddress(ev);
+      alert("validate Adress Done");
       var $form = $(ev.currentTarget).parents('form');
       var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
       startTransaction(acquirer_id, $form);
