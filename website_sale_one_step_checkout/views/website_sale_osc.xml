@@ -13,9 +13,6 @@
             </xpath>
         </template>
 
-
-
-
         <template id="osc_onestepcheckout">
              <t t-call="website.layout">
                 <t t-set="additional_title">Shop - Checkout</t>
@@ -89,12 +86,12 @@
                             </div>
 
                             <!--Modal for Public User Address-->
-
+                            <!--TODO: Implement Modal-->
 
 
                                         <!-- Delivery Methods Start -->
                             <div id="col-2" class="col-md-4 oe_mycart">
-                                <div t-if="deliveries" id="delivery_carrier">
+                                <div t-if="deliveries" id="delivery_carrier_osc">
                                     <h3 class="page-header mt16">Delivery Method</h3>
                                         <ul class="list-unstyled">
                                             <t t-foreach="deliveries" t-as="delivery">

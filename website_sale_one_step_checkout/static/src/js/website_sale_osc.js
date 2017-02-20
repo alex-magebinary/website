@@ -12,57 +12,38 @@ odoo.define("website_sale_osc", function (require) {
     ajax.jsonRpc('/shop/checkout/change_delivery', 'call', {'carrier_id': carrierId})
       .then(function (result) {
         if (result) {
-          console.log("there's a result");
           if (result.success) {
-            console.log("it's been successful");
-            console.log(result.order_total);
             if (result.order_total) {
-              console.log("result.order_total:", result.order_total);
                 $('#order_total .oe_currency_value').text(result.order_total);
               $('.js_payment input[name=amount]').val(result.order_total);
-              console.log("test test test test test");
-
             }
             if (result.order_total_taxes) {
-              console.log("order_total_taxes",result.order_total_taxes);
                 $('#order_total_taxes .oe_currency_value').text(result.order_total_taxes);
 
             }
-            if (result.order_subtotal) {
-              console.log("order_subtotal", result.order_subtotal) ;
-              $('#order_subtotal .oe_currency_value').text(result.order_subtotal);
-
-            }
             if (result.order_total_delivery) {
-              console.log("result.order_total_delivery",result.order_total_delivery);
                 $('#order_delivery .oe_currency_value').text(result.order_total_delivery);
 
             }
           } else if (result.errors) {
             // ???
-              console.log("result errors");
           }
         } else {
           // ???
-            console.log("last else");
           window.location.href = '/shop';
         }
       });
 
-    console.log("end of jsconRpc call");
   }
 
   function validateAddress(ev) {
         //Todo: this is now just preliminary to set the last_order_id.
-      alert("Validating Adress");
       ajax.jsonRpc('/shop/checkout/confirm_address/', 'call');//, data);
     };
 
   function startTransaction(acquirer_id, form){
-        alert("Start Transaction");
     form.off('submit');
       ajax.jsonRpc('/shop/payment/transaction/' + acquirer_id, 'call', {}).then(function (data) {
-          alert("Ajax Function");
           $(data).appendTo('body').submit();
       });
       return false;
@@ -72,7 +53,10 @@ odoo.define("website_sale_osc", function (require) {
   base.dom_ready.done(function () {
 
     // when choosing an delivery carrier, update the total prices
-    var $carrier = $('#delivery_carrier');
+    // original part in website_sale_delivery.js uses `delivery_carrier`
+    // since we don't want that JS triggered, we're using our own id `delivery_carrier_osc
+      // to avoid the page reload of the original one
+    var $carrier = $('#delivery_carrier_osc');
     $carrier.find('input[name="delivery_type"]').click(function (ev) {
       var carrierId = $(ev.currentTarget).val();
       changeDelivery(carrierId);
@@ -82,8 +66,6 @@ odoo.define("website_sale_osc", function (require) {
     var $payment = $('#payment_method');
     $payment.on('click', 'input[name="acquirer"]',function(ev) {
       var payment_id = $(ev.currentTarget).val();
-      console.log("activated");
-      console.log("Payment id:", payment_id);
       $('div.oe_sale_acquirer_button[data-id]').addClass('hidden');
       $('div.oe_sale_acquirer_button[data-id="' + payment_id + '"]').removeClass('hidden');
     }).find('input[name="acquirer"]:checked').click();
@@ -112,7 +94,6 @@ odoo.define("website_sale_osc", function (require) {
       ev.stopPropagation();
       // validate address and set last_order_id
       validateAddress(ev);
-      alert("validate Adress Done");
       var $form = $(ev.currentTarget).parents('form');
       var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
       startTransaction(acquirer_id, $form);

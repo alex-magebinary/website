@@ -22,7 +22,6 @@ class WebsiteSale(WebsiteSale):
         normal = super(WebsiteSale, self).checkout(**post)
 
         if not request.website.use_osc:
-            print "ABOUT TO RETURN NORMAL WEBSITESALE FUNCTION"
             return normal
 
         # must have a draft sale order with lines at this point, otherwise reset
@@ -48,9 +47,6 @@ class WebsiteSale(WebsiteSale):
             countries_domain = [('id', 'in', request.website.checkout_country_ids.ids)]
 
         values['countries'] = request.env['res.country'].search(countries_domain)
-
-        print "######################################"
-        #print values['checkout']
 
         if not post and request.uid != request.website.user_id.id and 'checkout' in values:
             values['checkout'].update({'street': partner.street_name,
@@ -96,9 +92,6 @@ class WebsiteSale(WebsiteSale):
 
         # TODO: Remove this once below part is adapted
         if 'sale_last_order_id' not in request.session:
-            print "==================================="
-            print "NO LAST ORDER; ABOUT TO WRITE sale_last_order_id"
-            print "==================================="
             request.session['sale_last_order_id'] = request.website.sale_get_order().id
 
 
@@ -224,8 +217,6 @@ class WebsiteSale(WebsiteSale):
         order = request.website.sale_get_order()
         carrier_id = int(post.get('carrier_id'))
 
-        print "Within change_delivery, (order, carrier_id): ", (order, carrier_id)
-
         return self.do_change_delivery(order, carrier_id)
 
     def do_change_delivery(self, order, carrier_id):
@@ -233,51 +224,32 @@ class WebsiteSale(WebsiteSale):
         if not order or not carrier_id:
             return {'success': False}
 
-        print "Within do_change_delivery, (order, carrier_id)", order, carrier_id
-
         # order_id is needed to get delivery carrier price
-        # TODO: does this what it's supposed to do?
+        # TODO: recheck if this is correct
         if not request.context.get('order_id'):
-            print ("In if clause")
-
             context = dict(request.context)
             context.update({'order_id': order.id})
 
-        # recompute delivery costs
-        print "Recompute delivery costs"
-        request.env['sale.order']._check_carrier_quotation(force_carrier_id=carrier_id)
-
-        print "generate updated total prices"
         # generate updated total prices
         updated_order = request.website.sale_get_order()
+        updated_order._check_carrier_quotation(force_carrier_id=carrier_id)
 
-        print "***********************"
-        print "request.env['product.product']._name"
-        print(request.env['product.product']._name)
+        updated_order.delivery_set()
 
         rml_obj = report_sxw.rml_parse(request.cr, SUPERUSER_ID,
                                        request.env['product.product']._name,
                                        context=context)
         price_digits = rml_obj.get_digits(dp='Product Price')
 
-        print "get additional tax information"
-        # get additional tax information
-        # tax_overview = request.env['sale.order'].tax_overview(updated_order)
-
         result = {
             'success': True,
             'order_total': rml_obj.formatLang(updated_order.amount_total,
                                               digits=price_digits),
-            # 'order_subtotal': rml_obj.formatLang(updated_order.amount_subtotal,
-            #                                      digits=price_digits),
             'order_total_taxes': rml_obj.formatLang(updated_order.amount_tax,
                                                     digits=price_digits),
-            # 'order_total_tax_overview': tax_overview,
             'order_total_delivery': rml_obj.formatLang(
                 updated_order.amount_delivery, digits=price_digits)
         }
-
-        print result
 
         return result
 
@@ -286,97 +258,3 @@ class WebsiteSale(WebsiteSale):
     def checkout_terms(self, **opt):
         """Function for terms of condition."""
         return request.render('website_sale_one_step_checkout.checkout_terms')
-
-
-
-
-    # def checkout_values(self, **kw):
-    #     """Additional information for unified checkout."""
-    #     data = kw or dict()
-    #     print "OSC CHECKOUT_VALUES: ", data
-    #     values = super(WebsiteSale, self).checkout_values(**kw)
-    #     if not request.website.use_osc:
-    #         return values
-    #
-    #     # Sale order
-    #     values["website_sale_order"] = request.website.sale_get_order()
-    #
-    #     # Payment info
-    #     payment = self.payment()
-    #     values.update(payment.qcontext)
-    #
-    #     # Default payment
-    #     try:
-    #         # The one the user chose, when being called from confirm_order()
-    #         values["default_acquirer_id"] = int(data["acquirer"])
-    #     except (KeyError, ValueError):
-    #         # Somebody tried to hack us, or it's being called from checkout()
-    #         try:
-    #             values["default_acquirer_id"] = values["acquirers"][0].id
-    #         except (KeyError, IndexError):
-    #             # There are no acquirers
-    #             pass
-    #
-    #     # Remove partner to display the "or Sign in" button
-    #     del values["partner"]
-    #
-    #     return values
-
-    # @http.route()
-    # def confirm_order(self, **post):
-    #     """One step order confirmation if enabled, default otherwise."""
-    #     normal = super(WebsiteSale, self).confirm_order(**post)
-    #
-    #     # Fall back to original logic if OSC is disabled
-    #     if not request.website.use_osc:
-    #         return normal
-    #
-    #     print 'OSC CONFIRM ORDER'
-    #
-    #     # Something failed at confirm
-    #     if "errors" in normal.qcontext:
-    #         checkout = self.checkout(**post)
-    #         checkout.qcontext.update(normal.qcontext)
-    #         return checkout
-    #
-    #     # TODO Peta la llamada JSONRPC a '/shop/payment/transaction/'
-    #     raise NotImplementedError
-
-
-# class WebsiteSaleDelivery(WebsiteSaleDelivery):
-#     @http.route(['/shop/payment'], type='http', auth="public", website=True)
-#     def payment(self, carrier_id=None, **post):
-#         """
-#         Fall back to normal if OSC is not enabled.
-#
-#         Otherwise update Delivery method and Price according to the newly chosen method
-#         while staying on the same checkout page.
-#         """
-#         normal = super(WebsiteSaleDelivery, self).payment(**post)
-#         if not request.website.use_osc:
-#             return normal
-#
-#         order = request.website.sale_get_order()
-#         carrier_id = carrier_id
-#         if carrier_id:
-#             carrier_id = int(carrier_id)
-#         if order:
-#             order._check_carrier_quotation(force_carrier_id=carrier_id)
-#             if carrier_id:
-#                 return request.redirect("/shop/checkout") #request.redirect("/shop/payment")
-#
-#         # TODO: take care of this --> add payment method to WebsiteSale above?
-#         return normal
-#
-#     def order_lines_2_google_api(self, order_lines):
-#         """ Transforms a list of order lines into a dict for google analytics """
-#         order_lines_not_delivery = order_lines.filtered(lambda line: not line.is_delivery)
-#         return super(WebsiteSaleDelivery, self).order_lines_2_google_api(order_lines_not_delivery)
-#
-#     def order_2_return_dict(self, order):
-#         """ Returns the tracking_cart dict of the order for Google analytics """
-#         ret = super(WebsiteSaleDelivery, self).order_2_return_dict(order)
-#         for line in order.order_line:
-#             if line.is_delivery:
-#                 ret['transaction']['shipping'] = line.price_unit
-#         return ret

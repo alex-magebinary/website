@@ -27,10 +27,6 @@ class WebsiteConfigSettings(models.TransientModel):
 
     _inherit = 'website.config.settings'
 
-    print "********************************"
-    print "LOADING WEBSITCONFIGSETTINGS"
-    print "********************************"
-
     group_website_sale_terms_conditions = fields.Boolean(
         string="Terms and Conditions",
         implied_group='website_sale_one_step_checkout.group_website_sale_terms_conditions',
@@ -63,8 +59,6 @@ class WebsiteConfigSettings(models.TransientModel):
             else:
                 setting.append((3, group_checkout_terms))
 
-
-        # TODO what does this xmlid_to_res_id
         portal_group = self.env['ir.model.data'].xmlid_to_res_id(
             'base.group_portal')
         users = self.env['res.users'].search([('groups_id', '=',
@@ -115,7 +109,6 @@ class SaleConfiguration(models.TransientModel):
         public_user = self.env.ref('base.public_user')
 
         if public_user:
-            print "======================================="
             print "osc > models > sale.py > SaleConfiguration > if public_user > public_user.write({'groups_id': setting})"
             print public_user.write({'groups_id': setting})
             public_user.write({'groups_id': setting})

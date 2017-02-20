@@ -46,34 +46,6 @@ class SaleOrder(models.Model):
             currency = rec.pricelist_id.currency_id
             rec.amount_subtotal = currency.round(line_amount)
 
-    # TODO adpat this tax calculation to v10
-    # @api.model
-    # def tax_overview(self, order):
-    #     """
-    #     Calculate additional tax information for displaying them in
-    #     onestepcheckout page.
-    #     """
-    #     taxes = {}
-    #     for line in order.order_line:
-    #         for tax in line.tax_id:
-    #             if str(tax.id) in taxes:
-    #                 taxes[str(tax.id)]['value'] += self._amount_line_tax(line)
-    #             else:
-    #                 taxes[str(tax.id)] = {'label': tax.name,
-    #                                       'value': self._amount_line_tax(line)}
-    #
-    #     # round and formatting valid taxes
-    #     res = []
-    #     currency = order.pricelist_id.currency_id
-    #     for key in taxes:
-    #         if taxes[key]['value'] > 0:
-    #             taxes[key]['value'] = '%.2f' % currency.round(taxes[key][
-    #                 'value'])
-    #             res.append(taxes[key])
-    #
-    #     return res
-    #
-
 
 
 class ResPartner(models.Model):
