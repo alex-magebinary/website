@@ -62,13 +62,14 @@
                                             </small>
                                         </h3>
                                     </div>
-                                    <div id="osc_billing" class="col-md-12 one_kanban">
+                                    <!--TODO: ADAPT THIS PART-->
+                                    <div id="osc_billing" class="col-md-12 one_kanban js-billing-address">
                                         <!--website.user_id == user_id-->
 										<!--<t t-if="order.partner_id.id == request.website.user_id.sudo().partner_id.id">-->
                                             <div class="row">
                                                 <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
                                                     <a type="button" class='btn btn-default mb16 btn-block' data-toggle="modal"
-                                                    data-target="#address" title="Address">
+                                                    data-target="address" title="Address">
                                                         <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
                                                     </a>
                                                 </div>
@@ -76,10 +77,20 @@
 										<!--</t>-->
                                         <!--order.partner_id.id != request.website.user_id.sudo().partner_id.id-->
 										<t t-if="order.partner_id.id != request.website.user_id.sudo().partner_id.id">
-                                            <t t-call="website_sale.address_kanban">
-                                                <t t-set='contact' t-value="order.partner_id"/>
-                                                <t t-set='selected' t-value="1"/>
-                                                <t t-set='readonly' t-value="1"/>
+                                            <t t-foreach="billings" t-as="bill">
+                                                <div class="col-sm-12 col-md-12 one_kanban">
+                                                    <t t-call="website_sale.address_kanban">
+                                                        <t t-set='contact' t-value="bill"/>
+                                                        <t t-set='selected' t-value="order.partner_invoice_id==bill"/>
+                                                        <t t-set='readonly' t-value="bool(len(billings)==1)"/>
+                                                        <t t-set='edit_billing' t-value="bool(bill==order.partner_invoice_id)"/>
+                                                    </t>
+                                                </div>
+                                            <!--</t>-->
+                                            <!--<t t-call="website_sale.address_kanban">-->
+                                                <!--<t t-set='contact' t-value="order.partner_invoice_id"/>-->
+                                                <!--<t t-set='selected' t-value="1"/>-->
+                                                <!--<t t-set='readonly' t-value="1"/>-->
                                             </t>
                                         </t>
                                     </div>
@@ -87,19 +98,16 @@
 
                                 <!--Modal for Public User Address-->
                                 <!--TODO: Implement Modal-->
-                                <div class="modal fade" id="address" role="dialog" aria-hidden="true">
+                                <div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <button type="button" class="close" data-dismiss="modal"
                                                         aria-hidden="true">X
                                                 </button>
-                                                <h4 class="modal-title">New Billing Address</h4>
+                                                <h4 class="modal-title"></h4>
                                             </div>
                                             <div class="modal-body address-form">
-                                                <!--<t t-if="order.partner_id.id == request.website.user_id.sudo().partner_id.id">-->
-                                                    <t t-call="website_sale_one_step_checkout.checkout_new_address_modal"/>
-                                                <!--</t>-->
                                             </div>
                                             <div class="modal-footer">
                                             </div>
@@ -107,24 +115,21 @@
                                     </div>
                                 </div>
 
-                                <!--/t[1]/t[1]/div[1]/div[1]/div[1]/div[1]/div[2]-->
-                                <t t-if="not only_services">
+                                <!-- TODO: [REF] Don't display Shipping Address for Public User if there is no Billing Addres-->
+                                <t t-if="not only_services and order.partner_id.id != request.website.user_id.sudo().partner_id.id">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <h3 class="page-header mt16">Shipping Address
                                             </h3>
                                         </div>
                                     </div>
-                                    <div id="osc_shipping" class="row all_shipping js_shipping">
+                                    <div id="osc_shipping" class="row all_shipping js-shipping-address">
                                         <div class="col-md-12">
                                             <div class="row mt8">
                                                 <div id="add-shipping-address" class="col-sm-12 col-md-12 one_kanban">
-                                                    <form action="/shop/address" method="post" class=''>
-                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
                                                         <a class='a-submit btn btn-default mb16 btn-block'>
                                                             <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
                                                         </a>
-                                                    </form>
                                                 </div>
                                                 <t t-foreach="shippings" t-as="ship">
                                                     <div class="col-sm-12 col-md-12 one_kanban">
@@ -275,20 +280,6 @@
                                     </ul>
                                 </div>
 
-                                <!--<div groups="website_sale_osc.group_website_sale_terms_conditions">-->
-									<!--<ul>-->
-										<!--<label class="checkbox checkbox-modal-link">-->
-											<!--<input type="checkbox" name="terms_conditions"/>-->
-											<!--I've accepted the-->
-											<!--<a href="javascript:;"-->
-											   <!--data-page-id="/page/terms_and_conditions/"-->
-											   <!--title="Terms and Conditions">Terms &amp;-->
-												<!--Condtions-->
-											<!--</a>-->
-										<!--</label>-->
-									<!--</ul>-->
-								<!--</div>-->
-
                                 <div class="row js_payment">
                                     <div class="col-md-12 mb32">
                                         <t t-foreach="acquirers or []" t-as="acquirer" id="acquirers_list">
@@ -348,96 +339,89 @@
 
         <template id="checkout_new_address_modal" name="Add New Address">
             <div id="osc_billing">
-                <t t-if="mode == ('new', 'billing')">
-                    <h3 class="page-header mt16">Your Address</h3>
-                </t>
-                <t t-if="mode == ('edit', 'billing')">
-                    <h3 class="page-header mt16">Your Address</h3>
-                </t>
-                <t t-if="mode[1] == 'shipping'">
-                    <h3 class="page-header mt16">Shipping Address </h3>
-                </t>
                 <t t-if="error" t-foreach="error.get('error_message', [])" t-as="err">
                     <h4 class="text-danger" t-esc="err" />
                 </t>
                 <form method="post" class="checkout_autoformat">
                     <div t-attf-class="form-group #{error.get('name') and 'has-error' or ''} col-md-12 div_name">
-                        <label class="control-label" for="name">Name</label>
-                        <input type="text" name="name" class="form-control" t-att-value="'name' in checkout and checkout['name']" />
-                    </div>
-                    <div class="clearfix" />
-                    <t t-if="mode[1] == 'billing'">
-                        <div t-attf-class="form-group #{error.get('email') and 'has-error' or ''} col-md-6" id="div_email">
-                            <label class="control-label" for="email">Email</label>
-                            <input type="email" name="email" class="form-control" t-att-value="'email' in checkout and checkout['email']" />
-                        </div>
-                    </t>
-                    <div t-attf-class="form-group #{error.get('phone') and 'has-error' or ''} col-md-6" id="div_phone">
-                        <label class="control-label" for="phone">Phone</label>
-                        <input type="tel" name="phone" class="form-control" t-att-value="'phone' in checkout and checkout['phone']" />
-                    </div>
-                    <div class="clearfix" />
-                    <t t-if="mode == ('new', 'billing')">
-                        <div t-attf-class="form-group #{error.get('company_name') and 'has-error' or ''} col-md-6">
-                            <label class="control-label" for="company_name">Company Name</label>
-                            <input type="text" name="company_name" class="form-control" t-att-value="'company_name' in checkout and checkout['company_name']" />
-                        </div>
-                        <div t-attf-class="form-group #{error.get('vat') and 'has-error' or ''} col-md-6 div_vat">
-                            <label class="control-label" for="vat">TIN / VAT </label>
-                            <input type="text" name="vat" class="form-control" t-att-value="'vat' in checkout and checkout['vat']" />
-                        </div>
-                    </t>
-                    <div class="clearfix" />
-                    <div t-attf-class="form-group #{error.get('street') and 'has-error' or ''} col-md-12 div_street">
-                        <label class="control-label" for="street">Street <span class="hidden-xs"> and Number</span></label>
-                        <input type="text" name="street" class="form-control" t-att-value="'street' in checkout and checkout['street']" />
-                    </div>
-                    <div class="clearfix" />
-                    <t t-set='zip_city' t-value='country and [x for x in country.get_address_fields() if x in ["zip", "city"]] or ["city", "zip"]'/>
-                    <t t-if="'zip' in zip_city and zip_city.index('zip') &lt; zip_city.index('city')">
-                        <div t-attf-class="form-group #{error.get('zip') and 'has-error' or ''} col-sm-4 div_zip">
-                            <label class="control-label" for="zip">Zip Code</label>
-                            <input type="text" name="zip" class="form-control" t-att-value="'zip' in checkout and checkout['zip']" />
-                        </div>
-                    </t>
-                    <div t-attf-class="form-group #{error.get('city') and 'has-error' or ''} col-sm-8 div_city">
-                        <label class="control-label" for="city">City</label>
-                        <input type="text" name="city" class="form-control" t-att-value="'city' in checkout and checkout['city']" />
-                    </div>
-                    <t t-if="'zip' in zip_city and zip_city.index('zip') &gt; zip_city.index('city')">
-                        <div t-attf-class="form-group #{error.get('zip') and 'has-error' or ''} col-sm-4 div_zip">
-                            <label class="control-label" for="zip">Zip Code</label>
-                            <input type="text" name="zip" class="form-control" t-att-value="'zip' in checkout and checkout['zip']" />
-                        </div>
-                    </t>
-                    <div class="clearfix" />
-                    <div t-attf-class="form-group #{error.get('country_id') and 'has-error' or ''} col-md-6 div_country">
-                        <label class="control-label" for="country_id">Country</label>
-                        <select id="country_id" name="country_id" class="form-control">
-                            <option value="">Country...</option>
-                            <t t-foreach="countries" t-as="c">
-                                <option t-att-value="c.id" t-att-selected="c.id == (country and country.id or -1)">
-                                    <t t-esc="c.name" />
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <div t-attf-class="form-group #{error.get('state_id') and 'has-error' or ''} col-md-6 div_state" t-att-style="(not country or not country.state_ids) and 'display: none'">
-                        <label class="control-label" for="state_id">State / Province</label>
-                        <select name="state_id" class="form-control" data-init="1">
-                            <option value="">State / Province...</option>
-                            <t t-foreach="country and country.state_ids or []" t-as="s">
-                                <option t-att-value="s.id" t-att-selected="s.id == ('state_id' in checkout and country and checkout['state_id'] != '' and int(checkout['state_id']))">
-                                    <t t-esc="s.name" />
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                    <input type="hidden" name="submitted" value="1" />
-                    <input type="hidden" name="partner_id" t-att-value="partner_id or '0'" />
-                    <input type="hidden" name="callback" t-att-value="callback" />
-                    <input type="hidden" name="field_required" t-att-value="mode[1] == 'billing' and 'phone,name' or ''" />
+                                        <label class="control-label" for="name">Name</label>
+                                        <input type="text" name="name" class="form-control" t-att-value="'name' in checkout and checkout['name']" />
+                                    </div>
+                                    <div class="clearfix" />
+                                    <t t-if="mode[1] == 'billing'">
+                                        <div t-attf-class="form-group #{error.get('email') and 'has-error' or ''} col-md-6" id="div_email">
+                                            <label class="control-label" for="email">Email</label>
+                                            <input type="email" name="email" class="form-control" t-att-value="'email' in checkout and checkout['email']" />
+                                        </div>
+                                    </t>
+                                    <div t-attf-class="form-group #{error.get('phone') and 'has-error' or ''} col-md-6" id="div_phone">
+                                        <label class="control-label" for="phone">Phone</label>
+                                        <input type="tel" name="phone" class="form-control" t-att-value="'phone' in checkout and checkout['phone']" />
+                                    </div>
+                                    <div class="clearfix" />
+                                    <t t-if="mode == ('new', 'billing')">
+                                        <div t-attf-class="form-group #{error.get('company_name') and 'has-error' or ''} col-md-6">
+                                            <label class="control-label" for="company_name">Company Name</label>
+                                            <input type="text" name="company_name" class="form-control" t-att-value="'company_name' in checkout and checkout['company_name']" />
+                                        </div>
+                                        <div t-attf-class="form-group #{error.get('vat') and 'has-error' or ''} col-md-6 div_vat">
+                                            <label class="control-label" for="vat">TIN / VAT </label>
+                                            <input type="text" name="vat" class="form-control" t-att-value="'vat' in checkout and checkout['vat']" />
+                                        </div>
+                                    </t>
+                                    <div class="clearfix" />
+                                    <div t-attf-class="form-group #{error.get('street') and 'has-error' or ''} col-md-12 div_street">
+                                        <label class="control-label" for="street">Street <span class="hidden-xs"> and Number</span></label>
+                                        <input type="text" name="street" class="form-control" t-att-value="'street' in checkout and checkout['street']" />
+                                    </div>
+                                    <div class="clearfix" />
+                                    <t t-set='zip_city' t-value='country and [x for x in country.get_address_fields() if x in ["zip", "city"]] or ["city", "zip"]'/>
+                                    <t t-if="'zip' in zip_city and zip_city.index('zip') &lt; zip_city.index('city')">
+                                        <div t-attf-class="form-group #{error.get('zip') and 'has-error' or ''} col-sm-4 div_zip">
+                                            <label class="control-label" for="zip">Zip Code</label>
+                                            <input type="text" name="zip" class="form-control" t-att-value="'zip' in checkout and checkout['zip']" />
+                                        </div>
+                                    </t>
+                                    <div t-attf-class="form-group #{error.get('city') and 'has-error' or ''} col-sm-8 div_city">
+                                        <label class="control-label" for="city">City</label>
+                                        <input type="text" name="city" class="form-control" t-att-value="'city' in checkout and checkout['city']" />
+                                    </div>
+                                    <t t-if="'zip' in zip_city and zip_city.index('zip') &gt; zip_city.index('city')">
+                                        <div t-attf-class="form-group #{error.get('zip') and 'has-error' or ''} col-sm-4 div_zip">
+                                            <label class="control-label" for="zip">Zip Code</label>
+                                            <input type="text" name="zip" class="form-control" t-att-value="'zip' in checkout and checkout['zip']" />
+                                        </div>
+                                    </t>
+                                    <div class="clearfix" />
+                                    <div t-attf-class="form-group #{error.get('country_id') and 'has-error' or ''} col-md-6 div_country">
+                                        <label class="control-label" for="country_id">Country</label>
+                                        <select id="country_id" name="country_id" class="form-control">
+                                            <option value="">Country...</option>
+                                            <t t-foreach="countries" t-as="c">
+                                                <option t-att-value="c.id" t-att-selected="c.id == (country and country.id or -1)">
+                                                    <t t-esc="c.name" />
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                    <div t-attf-class="form-group #{error.get('state_id') and 'has-error' or ''} col-md-6 div_state" t-att-style="(not country or not country.state_ids) and 'display: none'">
+                                        <label class="control-label" for="state_id">State / Province</label>
+                                        <select name="state_id" class="form-control" data-init="1">
+                                            <option value="">State / Province...</option>
+                                            <t t-foreach="country and country.state_ids or []" t-as="s">
+                                                <option t-att-value="s.id" t-att-selected="s.id == ('state_id' in checkout and country and checkout['state_id'] != '' and int(checkout['state_id']))">
+                                                    <t t-esc="s.name" />
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                    <input type="hidden" name="submitted" value="1" />
+                                    <input type="hidden" name="partner_id" t-att-value="partner_id or '0'" />
+                                    <input type="hidden" name="callback" t-att-value="callback" />
+                                    <!-- Example -->
+                                    <input type="hidden" name="field_required" t-att-value="mode[1] == 'billing' and 'phone,name' or ''" />
                     <div class="clearfix"/>
                     <div>
                         <a id="js_confirm_address" class="btn btn-default btn-primary pull-right mb32">

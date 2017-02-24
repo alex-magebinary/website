@@ -18,25 +18,18 @@ class WebsiteSale(WebsiteSale):
     def checkout(self, **post):
         """Use one step checkout if enabled. Fall back to normal otherwise."""
         # Use normal checkout if OSC is disabled or there is a redirection
-        normal = super(WebsiteSale, self).checkout(**post)
-
         if not request.website.use_osc:
-            return normal
+            return super(WebsiteSale, self).checkout(**post)
 
         # must have a draft sale order with lines at this point, otherwise reset
         order = request.website.sale_get_order()
 
+        # TODO: remove?
         redirection = self.checkout_redirection(order)
         if redirection:
             return redirection
 
         values = self.checkout_values(**post)
-
-
-        # if not normal.qcontext:
-        #     values = self.checkout_values(**post)
-        # else:
-        #     values = normal.qcontext
 
         partner = request.env['res.users'].sudo().browse(request.uid).partner_id
 
@@ -57,41 +50,143 @@ class WebsiteSale(WebsiteSale):
         result = self.payment(post=post)
         values.update(result.qcontext)
 
-        # If public user, we need additional render values for the address modal
-        # since the modal will call the website_sale.address template
-        # if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-        render_values = self.get_address_render_values(**post)
-        values.update(render_values)
-
         # Return unified checkout view
         return request.render(
             'website_sale_one_step_checkout.osc_onestepcheckout', values)
 
-    def get_address_render_values(self, **kw):
-        """
-        Helper function which fetches required address values
-        needed for the website_sale.address template which
-        is called from within the address modal for public users
+    def checkout_values(self, **kw):
+        values = super(WebsiteSale, self).checkout_values(**kw)
+        order = values.get('order', False)
+        billings = []
+        if order and order.partner_id != request.website.user_id.sudo().partner_id:
+            Partner = order.partner_id.with_context(show_address=1).sudo()
+            billings = Partner.search([
+                ("id", "child_of", order.partner_id.commercial_partner_id.ids),
+                ("type", "=", "invoice")
+            ], order='id desc')
+            billings = billings
+            if billings:
+                if kw.get('partner_id'):
+                    partner_id = int(kw.get('partner_id'))
+                    if partner_id in billings.mapped('id'):
+                        order.partner_billing_id = partner_id
 
-        This part is mostly adapted from website_sale > main.py > address()
+        values['billings'] = billings
+        return values
 
-        :return: render values needed for website_sale.address template
-        """
-
+    # TODO CHANGE NAME AND URL?
+    @http.route(['/shop/checkout/render_address'], type='json', auth='public', website=True, multilang=True)
+    def renderAddress(self, **kw):
+        Partner = request.env['res.partner'].with_context(show_address=1).sudo()
         order = request.website.sale_get_order(force_create=1)
+        # TODO use other default values ,maybe 'new', 'billing'
+        mode = (False, False)
+        def_country_id = order.partner_id.country_id
         values, errors = {}, {}
 
         partner_id = int(kw.get('partner_id', -1))
+        parent_id = order.partner_id.id
 
-        # We have a public order f
-        mode = ('new', 'billing')
-        country_code = request.session['geoip'].get('country_code')
-        if country_code:
-            def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
+        redirection = self.checkout_redirection(order)
+        if redirection:
+            return redirection
+
+        # IF PUBLIC ORDER
+        if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
+            parent_id = False
+            mode = ('new', 'billing')
+            country_code = request.session['geoip'].get('country_code')
+            if country_code:
+                def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
+            else:
+                def_country_id = request.website.user_id.sudo().country_id
+        # IF ORDER LINKED TO A PARTNER
         else:
-            def_country_id = request.website.user_id.sudo().country_id
+            print "ORDER LINKED TO A PARTNER"
+            # [REF]
+            # CASE WHERE PARTNER WANTS TO ADD A NEW BILLING ADDRESS
+            # SET mode
+            if 'mode' in kw:
+                mode = tuple(kw['mode'])
+            if partner_id > 0:
+                if partner_id == order.partner_invoice_id.id:
+                    mode = ('edit', 'billing')
+                else:
+                    # [REF]
+                    shippings = Partner.search([('type','=', 'delivery'), ('parent_id','=',parent_id)])
+                    if partner_id in shippings.mapped('id'):
+                        mode = ('edit', 'shipping')
+                    else:
+                        return Forbidden()
+                # [REF]
+                # Seems like values is never used again
+                # TODO FIX THIS
+                # if mode:
+                #     values = Partner.browse(partner_id)
+                #     print "****************************"
+                #     print "****************************"
+                #     print "values: %s, mode: %s" % (values, mode)
+                #     print "****************************"
+                #     print "****************************"
 
-        # TODO MOVE THE VALIDATION PART INTO A NEW HELPER FUNCTION
+            elif partner_id == -1 and 'mode' not in kw:
+                mode = ('new', 'shipping')
+
+        # IF POSTED
+        if 'submitted' in kw:
+            pre_values = self.values_preprocess(order, mode, kw)
+            errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
+            post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
+
+            if errors:
+                errors['error_message'] = error_msg
+                # [REF]
+                # HIGHLIGHT WRONG INPUT
+                return {
+                    'success': False,
+                    'errors': errors
+                }
+            else:
+                # [REF]
+                if not parent_id:
+                    parent_id = self._create_partner(post)
+                if mode[0]=='new':
+                    post['parent_id'] = parent_id
+                    if mode[1] == 'billing':
+                        post['type'] = 'invoice'
+                    elif mode[1] == 'shipping':
+                        post['type'] = 'delivery'
+
+                partner_id = self._checkout_form_save(mode, post, kw)
+
+                if mode[1] == 'billing':
+                    # [REF]
+                    order.partner_invoice_id = partner_id
+                elif mode[1] == 'shipping':
+                    order.partner_shipping_id = partner_id
+                    order.onchange_partner_shipping_id()
+
+                # TODO SAVE TO REMOVE THIS PART NOW?
+                # [REF]
+                # Needed for rendering the address template
+                # Must be the according partner_id as res.partner object
+                #partner_id_correct_type = type(partner_id) is not type(values) and type(partner_id) is not int
+                contact = partner_id #if partner_id_correct_type else values
+
+                order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
+                if not errors:
+                    # [REF]
+                    render_values = {
+                        'contact': contact,
+                        'selected': 1,
+                        'readonly': 1
+                    }
+                    template = request.env['ir.ui.view'].render_template("website_sale.address_kanban", render_values)
+                    return {
+                        'success': True,
+                        'template': template,
+                        'type': mode[1]
+                    }
 
         country = 'country_id' in values and values['country_id'] != '' and request.env['res.country'].browse(
             int(values['country_id']))
@@ -107,16 +202,108 @@ class WebsiteSale(WebsiteSale):
             'callback': kw.get('callback'),
         }
 
-        return render_values
+        template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.checkout_new_address_modal", render_values)
+        print(render_values)
+        return {
+            'success': True,
+            'template': template,
+            'type': mode[1]
+        }
 
+    def _create_partner(self, values):
+        '''
+        GET ADDRESS DATA AND SAVE THEM INTO A DICT
+        CREATE PARTNER
+        RETURN partner_id which will be used as parent_id and address data
+        :param values:  dict consisting of address values
+        :return:        partner_id
+        '''
+        for key, val in values.items():
+            if key in self._get_address_fields():
+                del values[key]
+        return request.env['res.partner'].sudo().create(values)
+
+    def _get_address_fields(self):
+        return ['city', 'street', 'street2', 'zip', 'state_id', 'country_id']
+
+
+    # TODO REMOVE
     @http.route(['/shop/checkout/validate_address'], type='json', auth='public', website=True, multilang=True)
     def validate_address(self, **kw):
+        Partner = request.env['res.partner'].with_context(show_address=1).sudo()
         order = request.website.sale_get_order()
 
-        # Public user
-        mode = ('new', 'billing')
+        # Needed for ?
+        partner_id = int(kw.get('partner_id', -1))
 
-        # IF POSTED
+        # mode: tuple ('new|edit', 'billing|shipping')
+        mode = (kw['address_mode_type'], kw['address_mode_name'])
+
+        # TODO: For edit button: Make sure how to translate the
+        # below if clauses. We probably don't need some of them,
+        # since we pass mode directly from JS
+
+
+        print "#################"
+        print kw
+        print "#################"
+
+
+        # IF PUBLIC ORDER
+        if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
+            print "PUBLIC ORDER"
+            country_code = request.session['geoip'].get('country_code')
+            if country_code:
+                print "COUNTRY CODE"
+                def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
+            else:
+                print "NO COUNTRY CODE"
+                def_country_id = request.website.user_id.sudo().country_id
+        # IF ORDER LINKED TO A PARTNER
+        else:
+            print "ORDER LINKED TO A PARTNER"
+            #if partner_id > 0:
+
+                # TODO: dont need this since we pass mode directly
+                # if partner_id == order.partner_id.id:
+                #     mode = ('edit', 'billing')
+                #     print "EDIT BILLING"
+                # else:
+
+            if mode[1] == 'shipping':
+                shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
+                #     if partner_id in shippings.mapped('id'):
+                #         print "EDIT SHIPPING"
+                #         mode = ('edit', 'shipping')
+                #     else:
+                # TODO: why is this forbidden?
+                #         return Forbidden()
+                if mode[0] == 'edit':
+                    # TODO: this partner_id is suppsoed to be the shipping id if mode = ('edit', 'shipping')
+                    # TODO: if mode = ('edit', 'billing') its equal to order.partner_id
+                    # TODO: WARNING: This effect has to be probably overwritten, since with more billing addresses,
+                    # TODO: it won't default to order.partner_id anymore, but the according partner_id has somehow
+                    # TODO: to be retrieved when clikcing on the 'Edit' button of the according billing address
+                    #
+                    # Recheck without OSC to see what I mean
+                    values = Partner.browse(partner_id)
+            # TODO: dont need this since we pass mode directly
+            # elif partner_id == -1:
+            #     print "NEW SHIPPING"
+            #     mode = ('new', 'shipping')
+            #else:  # no mode - refresh without post?
+            #    return request.redirect('/shop/checkout')
+
+
+        print "*************************"
+        print "*************************"
+        print "*************************"
+        print mode
+        print "*************************"
+        print "*************************"
+        print "*************************"
+
+        # POSTED at this point
         pre_values = self.values_preprocess(order, mode, kw)
         errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
         post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
@@ -127,6 +314,13 @@ class WebsiteSale(WebsiteSale):
                 'success':False,
                 'errors':errors
             }
+
+        # TODO: when new address created either order.partner_id or
+        # TODO: order.partner_shipping_id will be overwritten by newly created partner_id.
+        # TODO: In odoo core code, partner_id will be passed for rendering. That's not what we're
+        # TODO: Doing down there?
+        # Added partner_id at beginning of function. Will be retrieved from form element (Edit sibling) and sent via JS
+
         else:
             partner_id = self._checkout_form_save(mode, post, kw)
 
@@ -138,7 +332,24 @@ class WebsiteSale(WebsiteSale):
 
             order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
             if not errors:
-                partner = request.env['res.partner'].sudo().browse(order.partner_id.id)
+                partner = request.env['res.partner'].sudo().browse(partner_id.id) # TODO changed this from browse(order.partner_id.id)
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print partner
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
+                print '................................'
                 values = {
                     'contact': partner,
                     'selected': 1,
@@ -147,9 +358,11 @@ class WebsiteSale(WebsiteSale):
                 template = request.env['ir.ui.view'].render_template("website_sale.address_kanban", values)
                 return {
                     'success': True,
-                    'template': template
+                    'template': template,
+                    'type': mode[1]
                 }
 
+    # TODO REMOVE
     @http.route(['/shop/checkout/confirm_address/'], type='json', auth='public', website=True,
                 multilang=True)
     def confirm_address(self, **post):
@@ -221,88 +434,12 @@ class WebsiteSale(WebsiteSale):
                 'success': False,
                 'errors': values['error']
             }
-
-        #
-        # company = None
-        # if 'company' in checkout:
-        #     companies = orm_partner.sudo().search([('name', 'ilike', checkout['company']),
-        #                                            ('is_company', '=', True)])
-        #     company = (companies and companies[0]) or orm_partner.sudo().create({
-        #         'name': checkout['company'],
-        #         'is_company': True
-        #     })
-        #
-        # checkout['street_name'] = checkout.get('street')
-        # if checkout.get('street_number'):
-        #     checkout['street'] = checkout.get('street') + ' ' + checkout.get('street_number')
-        #
-        # billing_info = dict((k, v) for k, v in checkout.items()
-        #                     if 'shipping_' not in k and k != 'company')
-        # billing_info['parent_id'] = (company and company.id) or None
-        #
-        # partner = None
-        # if request.uid != request.website.user_id.id:
-        #     partner = request.env['res.users'].sudo().browse(request.uid).partner_id
-        # elif order.partner_id:
-        #     users = request.env['res.users'].sudo().search([
-        #         ('active', '=', False), ('partner_id', '=', order.partner_id.id)])
-        #     if not users or request.website.user_id.id not in users.ids:
-        #         partner = order.partner_id
-        #
-        # if partner:
-        #     partner.sudo().write(billing_info)
-        # else:
-        #     partner = orm_partner.sudo().create(billing_info)
-        #
-        # shipping_partner = None
-        # if int(checkout.get('shipping_id')) == -1:
-        #     shipping_info = {
-        #         'phone': post['shipping_phone'],
-        #         'zip': post['shipping_zip'],
-        #         'street': post['shipping_street'] + ' ' + post.get('shipping_street_number'),
-        #         'street_name': post['shipping_street'],
-        #         'street_number': post['shipping_street_number'],
-        #         'city': post['shipping_city'],
-        #         'name': post['shipping_name'],
-        #         'email': post['email'],
-        #         'type': 'delivery',
-        #         'parent_id': partner.id,
-        #         'country_id': post['shipping_country_id'],
-        #         'state_id': post['shipping_state_id'],
-        #     }
-        #     domain = [(key, '_id' in key and '=' or 'ilike', '_id' in key and value and int(
-        #         value) or value)
-        #               for key, value in shipping_info.items() if key in
-        #               self.mandatory_billing_fields + ['type', 'parent_id']]
-        #     shipping_partners = orm_partner.sudo().search(domain)
-        #     if shipping_partners:
-        #         shipping_partner = shipping_partners[0]
-        #         shipping_partner.write(shipping_info)
-        #     else:
-        #         shipping_partner = orm_partner.sudo().create(shipping_info)
-        #
-        # order_info = {
-        #     'partner_id': partner.id,
-        #     'message_follower_ids': [(4, partner.id), (3, request.website.partner_id.id)],
-        #     'partner_invoice_id': partner.id
-        # }
-        # order_info.update(request.env['sale.order'].sudo().onchange_partner_id(
-        #     partner.id)['value'])
-        # # we need to update partner_shipping_id after onchange_partner_id() call
-        # # otherwise the deselection of the option 'Ship to a different address'
-        # # would be overwritten by an existing shipping partner type
-        # order_info.update({
-        #     'partner_shipping_id': (shipping_partner and shipping_partner.id) or partner.id})
-        # order_info.pop('user_id')
-        #
-        # order.sudo().write(order_info)
-        # request.session['sale_last_order_id'] = order.id
         return {'success': True}
 
     @http.route(['/shop/checkout/change_delivery'], type='json', auth="public", website=True, multilang=True)
     def change_delivery(self, **post):
         """
-        If delivery method is was changed in frontend.
+        If delivery method was changed in frontend.
 
         Change and apply delivery carrier / amount to sale order.
         """
