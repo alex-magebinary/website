@@ -7,6 +7,7 @@ from odoo.addons.website_sale_delivery.controllers.main import WebsiteSaleDelive
 from odoo.http import request, redirect_with_hash
 from odoo.report import report_sxw
 from odoo import http, SUPERUSER_ID
+from werkzeug.exceptions import Forbidden
 
 
 class WebsiteSale(WebsiteSale):
@@ -50,6 +51,8 @@ class WebsiteSale(WebsiteSale):
         result = self.payment(post=post)
         values.update(result.qcontext)
 
+        print values
+
         # Return unified checkout view
         return request.render(
             'website_sale_one_step_checkout.osc_onestepcheckout', values)
@@ -79,11 +82,11 @@ class WebsiteSale(WebsiteSale):
     def renderAddress(self, **kw):
         Partner = request.env['res.partner'].with_context(show_address=1).sudo()
         order = request.website.sale_get_order(force_create=1)
-        # TODO use other default values ,maybe 'new', 'billing'
-        mode = (False, False)
         def_country_id = order.partner_id.country_id
-        values, errors = {}, {}
+        prefilled_form_values, errors = {}, {}
 
+        # TODO use other default values ,maybe 'new', 'billing'
+        mode = tuple(kw.get('mode', (False, False)))
         partner_id = int(kw.get('partner_id', -1))
         parent_id = order.partner_id.id
 
@@ -94,7 +97,7 @@ class WebsiteSale(WebsiteSale):
         # IF PUBLIC ORDER
         if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
             parent_id = False
-            mode = ('new', 'billing')
+            #mode = ('new', 'billing')
             country_code = request.session['geoip'].get('country_code')
             if country_code:
                 def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
@@ -102,34 +105,27 @@ class WebsiteSale(WebsiteSale):
                 def_country_id = request.website.user_id.sudo().country_id
         # IF ORDER LINKED TO A PARTNER
         else:
-            print "ORDER LINKED TO A PARTNER"
-            # [REF]
-            # CASE WHERE PARTNER WANTS TO ADD A NEW BILLING ADDRESS
-            # SET mode
-            if 'mode' in kw:
-                mode = tuple(kw['mode'])
+            print "ORDER LINKED TO A PARTNER", partner_id
             if partner_id > 0:
-                if partner_id == order.partner_invoice_id.id:
-                    mode = ('edit', 'billing')
-                else:
-                    # [REF]
-                    shippings = Partner.search([('type','=', 'delivery'), ('parent_id','=',parent_id)])
-                    if partner_id in shippings.mapped('id'):
-                        mode = ('edit', 'shipping')
-                    else:
-                        return Forbidden()
                 # [REF]
-                # Seems like values is never used again
-                # TODO FIX THIS
-                # if mode:
-                #     values = Partner.browse(partner_id)
-                #     print "****************************"
-                #     print "****************************"
-                #     print "values: %s, mode: %s" % (values, mode)
-                #     print "****************************"
-                #     print "****************************"
+                # IN CASE OF EDITING MAKE SURE ACCESS RIGHTS ARE GIVEN
+                if mode[0] == 'edit':
+                    if mode[1] == 'billing':
+                        billings = Partner.search([('type','=', 'invoice'), ('parent_id','=',parent_id)])
 
-            elif partner_id == -1 and 'mode' not in kw:
+                        if partner_id not in billings.mapped('id'): #== order.partner_invoice_id.id:
+                            return Forbidden()
+
+                    elif mode[1] == 'shipping':
+                        shippings = Partner.search([('type','=', 'delivery'), ('parent_id','=',parent_id)])
+
+                        if partner_id not in shippings.mapped('id'):
+                            return Forbidden()
+
+                    # Fetch pre-filled form values of the address being rendered
+                    prefilled_form_values = Partner.browse(partner_id)
+
+            elif partner_id == -1 and mode[1] != 'billing':
                 mode = ('new', 'shipping')
 
         # IF POSTED
@@ -176,6 +172,28 @@ class WebsiteSale(WebsiteSale):
                 order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
                 if not errors:
                     # [REF]
+                    # Update displayed shipping addresses after edit event
+                    if mode[1] == 'shipping':
+                        print 'EDITING SHIPPINGS'
+                        # TODO FIGURE OUT WHICH WAY TO GET SHIPPINGS
+                        shippings = Partner.search([
+                            ("id", "child_of", order.partner_id.commercial_partner_id.ids),
+                            '|', ("type", "=", "delivery"), ("id", "=", order.partner_id.commercial_partner_id.id)
+                        ], order='id desc')
+                        print shippings
+                        render_values = {
+                            'shippings':shippings,
+                            'order':order
+                        }
+                        template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_shippings",
+                                                                             render_values)
+                        return {
+                            'success':True,
+                            'template':template,
+                            'mode':mode
+                        }
+
+                    # [REF]
                     render_values = {
                         'contact': contact,
                         'selected': 1,
@@ -185,16 +203,17 @@ class WebsiteSale(WebsiteSale):
                     return {
                         'success': True,
                         'template': template,
-                        'type': mode[1]
+                        'mode': mode
                     }
 
-        country = 'country_id' in values and values['country_id'] != '' and request.env['res.country'].browse(
-            int(values['country_id']))
+        country = 'country_id' in prefilled_form_values and prefilled_form_values['country_id'] != '' and request.env['res.country'].browse(
+            int(prefilled_form_values['country_id']))
         country = country and country.exists() or def_country_id
+        print "PREFILLED FORM VALUES before returning RENDER_VALUES", prefilled_form_values
         render_values = {
             'partner_id': partner_id,
             'mode': mode,
-            'checkout': values,
+            'checkout': prefilled_form_values,
             'country': country,
             'countries': country.get_website_sale_countries(mode=mode[1]),
             "states": country.get_website_sale_states(mode=mode[1]),

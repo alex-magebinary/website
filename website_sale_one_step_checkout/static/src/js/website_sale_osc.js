@@ -67,19 +67,28 @@ odoo.define("website_sale_osc", function (require) {
                   console.log(result);
                   $('#js_confirm_address').attr("disabled", false);
                   $('#address-modal').modal('hide');
-                  console.log('pre-render');
+                  alert('pre-render');
             // TODO: Once first address is created what happens to:
             //  if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
 
+                  // TODO ACTIVATE JS FOR NEWLY INSERTED VIEWS
+                  if(result.mode[1] == 'shipping'){
+                          // Update Shippings view
+                          $('.js-shipping-address').html(result.template)
+                  } else{
+                          // Update Billings view
+                          $('.js-billing-address').html(result.template)
+                      }
                   // TODO: REF
-              if(result.type == 'billing') {
-                  $('#add-billing-address').after(result.template);
-
-                  $('#add-shipping-address').after(result.template);
-              } else {
-                  $('#add-shipping-address').after(result.template);
-              }
-            console.log('post-render')
+              // if(result.mode[1] == 'billing') {
+              //     $('#add-billing-address').after(result.template);
+              //
+              //     $('#add-shipping-address').after(result.template);
+              // } else {
+              //     $('#add-shipping-address').after(result.template);
+              // }
+            alert('post-render');
+                  return false;
           } else if (result.errors) {
             for (var key in result.errors) {
               if ($('.oe_website_sale_osc input[name=' + key + ']').length > 0) {
@@ -209,6 +218,7 @@ odoo.define("website_sale_osc", function (require) {
         var data = {
             'title':title,
             'partner_id':partner_id,
+            'mode':['edit', 'billing']
         };
 
         renderAddressTemplate(data);
@@ -229,9 +239,11 @@ odoo.define("website_sale_osc", function (require) {
         var data = {
             'title':title,
             'partner_id':partner_id,
+            'mode':['edit', 'shipping']
         };
 
         renderAddressTemplate(data);
+        return false;
     });
 
     // ADD NEW BILLING ADDRESS
