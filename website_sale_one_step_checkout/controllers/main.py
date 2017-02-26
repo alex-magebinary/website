@@ -3,7 +3,6 @@
 # © 2016 Antiun Ingeniería S.L. - Jairo Llopis
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 from odoo.addons.website_sale.controllers.main import WebsiteSale
-from odoo.addons.website_sale_delivery.controllers.main import WebsiteSaleDelivery
 from odoo.http import request, redirect_with_hash
 from odoo.report import report_sxw
 from odoo import http, SUPERUSER_ID
@@ -51,7 +50,13 @@ class WebsiteSale(WebsiteSale):
         result = self.payment(post=post)
         values.update(result.qcontext)
 
+        print "Checkout values:"
         print values
+
+        # Avoid useless rendering if called in ajax
+        if post.get('xhr'):
+            print "if post.get('xhr'):", post
+            return 'ok'
 
         # Return unified checkout view
         return request.render(
@@ -62,12 +67,17 @@ class WebsiteSale(WebsiteSale):
         order = values.get('order', False)
         billings = []
         if order and order.partner_id != request.website.user_id.sudo().partner_id:
+            print "fetching billings"
+            print "order: ", order
+            print "order.partner_id.commercial_partner_id.ids", order.partner_id.commercial_partner_id.ids
+            print "order.partner_id", order.partner_id
             Partner = order.partner_id.with_context(show_address=1).sudo()
             billings = Partner.search([
                 ("id", "child_of", order.partner_id.commercial_partner_id.ids),
                 ("type", "=", "invoice")
             ], order='id desc')
-            billings = billings
+            print "Partner: ", Partner
+            print "billings: ", billings
             if billings:
                 if kw.get('partner_id'):
                     partner_id = int(kw.get('partner_id'))
@@ -85,8 +95,7 @@ class WebsiteSale(WebsiteSale):
         def_country_id = order.partner_id.country_id
         prefilled_form_values, errors = {}, {}
 
-        # TODO use other default values ,maybe 'new', 'billing'
-        mode = tuple(kw.get('mode', (False, False)))
+        mode = tuple(kw.get('mode', ('new', 'billing')))
         partner_id = int(kw.get('partner_id', -1))
         parent_id = order.partner_id.id
 
@@ -97,7 +106,6 @@ class WebsiteSale(WebsiteSale):
         # IF PUBLIC ORDER
         if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
             parent_id = False
-            #mode = ('new', 'billing')
             country_code = request.session['geoip'].get('country_code')
             if country_code:
                 def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
@@ -106,30 +114,48 @@ class WebsiteSale(WebsiteSale):
         # IF ORDER LINKED TO A PARTNER
         else:
             print "ORDER LINKED TO A PARTNER", partner_id
+            print "kws", kw
             if partner_id > 0:
                 # [REF]
                 # IN CASE OF EDITING MAKE SURE ACCESS RIGHTS ARE GIVEN
                 if mode[0] == 'edit':
                     if mode[1] == 'billing':
                         billings = Partner.search([('type','=', 'invoice'), ('parent_id','=',parent_id)])
-
-                        if partner_id not in billings.mapped('id'): #== order.partner_invoice_id.id:
+                        print 'billings', billings
+                        if partner_id not in billings.mapped('id'):
                             return Forbidden()
 
                     elif mode[1] == 'shipping':
-                        shippings = Partner.search([('type','=', 'delivery'), ('parent_id','=',parent_id)])
+                        # TODO
+                        # By default Odoo displays the 'Main' or Default address of the partner as shipping
+                        # but it's not saved as type 'delivery', so wont be editable with just the following:
+                        # shippings = Partner.search([('type','=', 'delivery'), ('parent_id','=',parent_id)])
+                        # shippings = Partner.search([('type', '=', 'delivery'), ('parent_id', '=', parent_id),
+                        #                             ("id", "=", partner_id)])
+
+                        shippings = Partner.search([
+                            ("id", "child_of", order.partner_id.commercial_partner_id.ids),
+                            '|', ("type", "=", "delivery"), ("id", "=", order.partner_id.commercial_partner_id.id)
+                        ], order='id desc')
+
+                            # THIS ONE DOESN'T WORK FOR THE MAIN ADDRESS, WILL RETURN FORBIDDEN UPON EDIT
+                            # Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids),
+                            #                         ('id', '=', partner_id),('type', '=', 'delivery')])
+                        print 'shippings: ', shippings
 
                         if partner_id not in shippings.mapped('id'):
                             return Forbidden()
 
-                    # Fetch pre-filled form values of the address being rendered
+                    # Fetch pre-filled form values of the address being edited
                     prefilled_form_values = Partner.browse(partner_id)
 
-            elif partner_id == -1 and mode[1] != 'billing':
-                mode = ('new', 'shipping')
+            #elif partner_id == -1 and mode[1] != 'billing':
+             #   mode = ('new', 'shipping')
 
         # IF POSTED
         if 'submitted' in kw:
+            print "Submitted"
+            print "mode: ", mode
             pre_values = self.values_preprocess(order, mode, kw)
             errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
             post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
@@ -172,9 +198,9 @@ class WebsiteSale(WebsiteSale):
                 order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
                 if not errors:
                     # [REF]
-                    # Update displayed shipping addresses after edit event
+                    # Update displayed shipping addresses
                     if mode[1] == 'shipping':
-                        print 'EDITING SHIPPINGS'
+                        print 'UPDATE DISPLAYED SHIPPINGS'
                         # TODO FIGURE OUT WHICH WAY TO GET SHIPPINGS
                         shippings = Partner.search([
                             ("id", "child_of", order.partner_id.commercial_partner_id.ids),
@@ -192,6 +218,30 @@ class WebsiteSale(WebsiteSale):
                             'template':template,
                             'mode':mode
                         }
+
+                    # [REF]
+                    # Update displayed billing addresses
+                    if mode[1] == 'billing':
+                        print "UPDATE DISPLAYED BILLINGS"
+                        # billings = Partner.search([('type', '=', 'invoice'), ('parent_id', '=', parent_id)])
+                        billings = Partner.search([
+                            ("id", "child_of", order.partner_id.commercial_partner_id.ids),
+                            ("type", "=", "invoice")], order='id desc')
+                        print "billings", billings
+                        render_values = {
+                            'billings':billings,
+                            'order':order
+                        }
+                        template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_billings",
+                                                                             render_values)
+                        return {
+                            'success':True,
+                            'template':template,
+                            'mode':mode
+                        }
+
+                    print "DO WE EVER HIT THIS PART?"
+
 
                     # [REF]
                     render_values = {
@@ -246,147 +296,17 @@ class WebsiteSale(WebsiteSale):
         return ['city', 'street', 'street2', 'zip', 'state_id', 'country_id']
 
 
-    # TODO REMOVE
-    @http.route(['/shop/checkout/validate_address'], type='json', auth='public', website=True, multilang=True)
-    def validate_address(self, **kw):
-        Partner = request.env['res.partner'].with_context(show_address=1).sudo()
-        order = request.website.sale_get_order()
-
-        # Needed for ?
-        partner_id = int(kw.get('partner_id', -1))
-
-        # mode: tuple ('new|edit', 'billing|shipping')
-        mode = (kw['address_mode_type'], kw['address_mode_name'])
-
-        # TODO: For edit button: Make sure how to translate the
-        # below if clauses. We probably don't need some of them,
-        # since we pass mode directly from JS
-
-
-        print "#################"
-        print kw
-        print "#################"
-
-
-        # IF PUBLIC ORDER
-        if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-            print "PUBLIC ORDER"
-            country_code = request.session['geoip'].get('country_code')
-            if country_code:
-                print "COUNTRY CODE"
-                def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
-            else:
-                print "NO COUNTRY CODE"
-                def_country_id = request.website.user_id.sudo().country_id
-        # IF ORDER LINKED TO A PARTNER
-        else:
-            print "ORDER LINKED TO A PARTNER"
-            #if partner_id > 0:
-
-                # TODO: dont need this since we pass mode directly
-                # if partner_id == order.partner_id.id:
-                #     mode = ('edit', 'billing')
-                #     print "EDIT BILLING"
-                # else:
-
-            if mode[1] == 'shipping':
-                shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
-                #     if partner_id in shippings.mapped('id'):
-                #         print "EDIT SHIPPING"
-                #         mode = ('edit', 'shipping')
-                #     else:
-                # TODO: why is this forbidden?
-                #         return Forbidden()
-                if mode[0] == 'edit':
-                    # TODO: this partner_id is suppsoed to be the shipping id if mode = ('edit', 'shipping')
-                    # TODO: if mode = ('edit', 'billing') its equal to order.partner_id
-                    # TODO: WARNING: This effect has to be probably overwritten, since with more billing addresses,
-                    # TODO: it won't default to order.partner_id anymore, but the according partner_id has somehow
-                    # TODO: to be retrieved when clikcing on the 'Edit' button of the according billing address
-                    #
-                    # Recheck without OSC to see what I mean
-                    values = Partner.browse(partner_id)
-            # TODO: dont need this since we pass mode directly
-            # elif partner_id == -1:
-            #     print "NEW SHIPPING"
-            #     mode = ('new', 'shipping')
-            #else:  # no mode - refresh without post?
-            #    return request.redirect('/shop/checkout')
-
-
-        print "*************************"
-        print "*************************"
-        print "*************************"
-        print mode
-        print "*************************"
-        print "*************************"
-        print "*************************"
-
-        # POSTED at this point
-        pre_values = self.values_preprocess(order, mode, kw)
-        errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
-        post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
-
-        if errors:
-            errors['error_message'] = error_msg
-            return {
-                'success':False,
-                'errors':errors
-            }
-
-        # TODO: when new address created either order.partner_id or
-        # TODO: order.partner_shipping_id will be overwritten by newly created partner_id.
-        # TODO: In odoo core code, partner_id will be passed for rendering. That's not what we're
-        # TODO: Doing down there?
-        # Added partner_id at beginning of function. Will be retrieved from form element (Edit sibling) and sent via JS
-
-        else:
-            partner_id = self._checkout_form_save(mode, post, kw)
-
-            if mode[1] == 'billing':
-                order.partner_id = partner_id
-                order.onchange_partner_id()
-            elif mode[1] == 'shipping':
-                order.partner_shipping_id = partner_id
-
-            order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
-            if not errors:
-                partner = request.env['res.partner'].sudo().browse(partner_id.id) # TODO changed this from browse(order.partner_id.id)
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print partner
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                print '................................'
-                values = {
-                    'contact': partner,
-                    'selected': 1,
-                    'readonly': 1
-                }
-                template = request.env['ir.ui.view'].render_template("website_sale.address_kanban", values)
-                return {
-                    'success': True,
-                    'template': template,
-                    'type': mode[1]
-                }
-
-    # TODO REMOVE
-    @http.route(['/shop/checkout/confirm_address/'], type='json', auth='public', website=True,
+    # TODO UPDATE
+    # AT THIS POINT THERE EITHER IS A ALREADY VALIDATE BILLING
+    # AND SHIPPING ADDRESS OR NOT.
+    # IN CASE ONE OF EITHER OF THOSE IS MISSING,
+    # RETURN FALSE, ELSE TRUE
+    @http.route(['/shop/checkout/confirm_checkout/'], type='json', auth='public', website=True,
                 multilang=True)
-    def confirm_address(self, **post):
+    def confirm_checkout(self, **post):
         """Address controller."""
         # must have a draft sale order with lines at this point, otherwise redirect to shop
+        print "CONFRIM CHECKOUT"
         order = request.website.sale_get_order()
         if not order or order.state != 'draft' or not order.order_line:
             request.session['sale_order_id'] = None
@@ -398,62 +318,22 @@ class WebsiteSale(WebsiteSale):
         if tx and tx.state != 'draft':
             return request.redirect('/shop/payment/confirmation/%s' % order.id)
 
-        orm_partner = request.env['res.partner']
-
-        info = {}
-        values = {
-            'countries': request.env['res.country'].sudo().search([]),
-            'states': request.env['res.country.state'].search([]),
-            'checkout': info,
-            'shipping': post.get('shipping_different')
-        }
-        checkout = values['checkout']
-        checkout.update(post)
-
         # TODO: Remove this once below part is adapted
+
         if 'sale_last_order_id' not in request.session:
+            print 'SETTING sale_last_order_id to: ', request.website.sale_get_order().id
             request.session['sale_last_order_id'] = request.website.sale_get_order().id
-
-
-        # TODO: Adapt this part for address validation
-        # see website_sale.main > address()
-        # IF PUBLIC ORDER
-        def_country_id = order.partner_id.country_id
-        if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-            mode = ('new', 'billing')
-            country_code = request.session['geoip'].get('country_code')
-            if country_code:
-                def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
-            else:
-                def_country_id = request.website.user_id.sudo().country_id
-        # IF ORDER LINKED TO A PARTNER
         else:
-            if partner_id > 0:
-                if partner_id == order.partner_id.id:
-                    mode = ('edit', 'billing')
-                else:
-                    shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
-                    if partner_id in shippings.mapped('id'):
-                        mode = ('edit', 'shipping')
-                    else:
-                        return Forbidden()
-                if mode:
-                    values = Partner.browse(partner_id)
-            elif partner_id == -1:
-                mode = ('new', 'shipping')
-            else:  # no mode - refresh without post?
-                return request.redirect('/shop/checkout')
+            print 'sale_last_order_id already there: ', request.website.sale_get_order().id
 
-
-        # TODO: adapt this part
-        values['error'] = self.checkout_form_validate(mode, checkout, checkout)
-        if values['error']:
-
-            return {
-                'success': False,
-                'errors': values['error']
-            }
-        return {'success': True}
+        # TODO: CHECK WHETHER ADDRESS IS GIVEN
+        #
+        # *** code here ***
+        #
+            # return {
+            #     'success': False,
+            # }
+        # return {'success': True}
 
     @http.route(['/shop/checkout/change_delivery'], type='json', auth="public", website=True, multilang=True)
     def change_delivery(self, **post):
