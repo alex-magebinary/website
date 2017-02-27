@@ -133,6 +133,10 @@
                                                 <h4 class="modal-title"></h4>
                                             </div>
                                             <div class="modal-body address-form">
+                                                <!--checkout_autoformat is needed so that country select function
+                                                in website_sale.js can be called, this div will be replaced
+                                                with real modal content-->
+                                                <div class="checkout_autoformat"></div>
                                             </div>
                                             <div class="modal-footer">
                                             </div>
@@ -448,27 +452,28 @@
         </template>
 
         <template id="update_displayed_billings">
-            <div class="row">
-                <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
-                    <a type="button" class='btn btn-default mb16 btn-block' data-toggle="modal"
-                    data-target="address" title="Address">
-                        <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
-                    </a>
+            <div class="col-md-12">
+                <div class="row mt8">
+                    <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
+                        <a type="button" class='btn btn-default mb16 btn-block' data-toggle="modal"
+                        data-target="address" title="Address">
+                            <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
+                        </a>
+                    </div>
+                    <t t-if="order.partner_id.id != request.website.user_id.sudo().partner_id.id">
+                        <t t-foreach="billings" t-as="bill">
+                            <div class="col-sm-12 col-md-12 one_kanban">
+                                <t t-call="website_sale.address_kanban">
+                                    <t t-set='contact' t-value="bill"/>
+                                    <t t-set='selected' t-value="order.partner_invoice_id==bill"/>
+                                    <t t-set='readonly' t-value="bool(len(billings)==1)"/>
+                                    <t t-set='edit_billing' t-value="bool(bill==order.partner_invoice_id)"/>
+                                </t>
+                            </div>
+                        </t>
+                    </t>
                 </div>
             </div>
-            <t t-if="order.partner_id.id != request.website.user_id.sudo().partner_id.id">
-                <t t-foreach="billings" t-as="bill">
-                    <div class="col-sm-12 col-md-12 one_kanban">
-                        <t t-call="website_sale.address_kanban">
-                            <t t-set='contact' t-value="bill"/>
-                            <t t-set='selected' t-value="order.partner_invoice_id==bill"/>
-                            <t t-set='readonly' t-value="bool(len(billings)==1)"/>
-                            <t t-set='edit_billing' t-value="bool(bill==order.partner_invoice_id)"/>
-                        </t>
-                    </div>
-                </t>
-            </t>
-
         </template>
 
 

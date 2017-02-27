@@ -114,16 +114,19 @@ odoo.define("website_sale_osc", function (require) {
   }
 
 
-  function confirmCheckout() {
+  function validateCheckout() {
         //Todo: this is now just preliminary to set the last_order_id.
-      alert('confirm checkout');
-      ajax.jsonRpc('/shop/checkout/confirm_checkout/', 'call', {});
+      alert('Validate Checkout');
+      ajax.jsonRpc('/shop/checkout/validate_checkout/', 'call', {});
     };
 
   function startTransaction(acquirer_id){
      // TODO UPDATE THIS
       // form.off('submit');
+      alert("start Transaction with acquirer id: ", acquirer_id);
       ajax.jsonRpc('/shop/payment/transaction/' + acquirer_id, 'call', {}).then(function (data) {
+          alert('back to JS, data:');
+          console.log(data);
           $(data).appendTo('body').submit();
       });
       return false;
@@ -342,7 +345,7 @@ odoo.define("website_sale_osc", function (require) {
           ev.preventDefault();
           ev.stopPropagation();
           // validate address and set last_order_id
-          confirmCheckout();
+          validateCheckout();
           // var $form = $(ev.currentTarget).parents('form');
           // TODO IS THIS SAVE?
           var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
