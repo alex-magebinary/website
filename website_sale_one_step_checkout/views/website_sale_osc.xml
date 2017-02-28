@@ -63,27 +63,16 @@
                                         </h3>
                                     </div>
                                     <!--TODO: ADAPT THIS PART-->
-                                    <div id="osc_billing" class="cow all_billing js-billing-address">
+                                    <div id="osc_billing" class="all_billing js-billing-address">
                                         <div class="col-md-12">
                                             <div class="row mt8">
                                                 <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
-                                                    <a type="button" class='btn btn-default mb16 btn-block' title="Address">
-                                                        <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
-                                                    </a>
-                                                </div>
-
-                                                <t t-if="order.partner_id.id != request.website.user_id.sudo().partner_id.id">
-                                                    <t t-foreach="billings" t-as="bill">
-                                                        <div class="col-sm-12 col-md-12 one_kanban">
-                                                            <t t-call="website_sale.address_kanban">
-                                                                <t t-set='contact' t-value="bill"/>
-                                                                <t t-set='selected' t-value="order.partner_invoice_id==bill"/>
-                                                                <t t-set='readonly' t-value="bool(len(billings)==1)"/>
-                                                                <t t-set='edit_billing' t-value="bool(bill==order.partner_invoice_id)"/>
-                                                            </t>
-                                                        </div>
+                                                    <t t-call="website_sale.address_kanban">
+                                                        <t t-set='contact' t-value="order.partner_id"/>
+                                                        <t t-set='selected' t-value="1"/>
+                                                        <t t-set='readonly' t-value="1"/>
                                                     </t>
-                                                </t>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -452,26 +441,17 @@
         </template>
 
         <template id="update_displayed_billings">
-            <div class="col-md-12">
-                <div class="row mt8">
-                    <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
-                        <a type="button" class='btn btn-default mb16 btn-block' data-toggle="modal"
-                        data-target="address" title="Address">
-                            <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
-                        </a>
+            <div id="osc_billing" class="all_billing js-billing-address">
+                <div class="col-md-12">
+                    <div class="row mt8">
+                        <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
+                            <t t-call="website_sale.address_kanban">
+                                <t t-set='contact' t-value="order.partner_id"/>
+                                <t t-set='selected' t-value="1"/>
+                                <t t-set='readonly' t-value="1"/>
+                            </t>
+                        </div>
                     </div>
-                    <t t-if="order.partner_id.id != request.website.user_id.sudo().partner_id.id">
-                        <t t-foreach="billings" t-as="bill">
-                            <div class="col-sm-12 col-md-12 one_kanban">
-                                <t t-call="website_sale.address_kanban">
-                                    <t t-set='contact' t-value="bill"/>
-                                    <t t-set='selected' t-value="order.partner_invoice_id==bill"/>
-                                    <t t-set='readonly' t-value="bool(len(billings)==1)"/>
-                                    <t t-set='edit_billing' t-value="bool(bill==order.partner_invoice_id)"/>
-                                </t>
-                            </div>
-                        </t>
-                    </t>
                 </div>
             </div>
         </template>

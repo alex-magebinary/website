@@ -45,7 +45,7 @@ odoo.define("website_sale_osc", function (require) {
         return data;
   };
 
-  function validateModalAddress(mode){
+  function validateModalAddress(){
       var billingElems = $('#osc_billing input, #osc_billing select')
           , data = {};
 
@@ -53,8 +53,6 @@ odoo.define("website_sale_osc", function (require) {
 
       // FOR VALIDATION WE NEED submitted
       data.submitted = true;
-      // IN CASE WE CREATE NEW BILLING ADDRESS WE NEED mode
-      data.mode = mode;
 
       $('.oe_website_sale_osc .has-error').removeClass('has-error');
       alert("validate address");
@@ -86,16 +84,7 @@ odoo.define("website_sale_osc", function (require) {
 
                       // Re-enable JS event listeners
                       $('.js-billing-address .js_edit_address').on('click', editBilling);
-                      $("#add-billing-address").on('click', 'a', addBilling);
                       }
-                  // TODO: REF
-              // if(result.mode[1] == 'billing') {
-              //     $('#add-billing-address').after(result.template);
-              //
-              //     $('#add-shipping-address').after(result.template);
-              // } else {
-              //     $('#add-shipping-address').after(result.template);
-              // }
                   return false;
           } else if (result.errors) {
             for (var key in result.errors) {
@@ -123,18 +112,15 @@ odoo.define("website_sale_osc", function (require) {
   function startTransaction(acquirer_id){
      // TODO UPDATE THIS
       // form.off('submit');
-      alert("start Transaction with acquirer id: ", acquirer_id);
+      alert("start Transaction with acquirer id: " + acquirer_id);
       ajax.jsonRpc('/shop/payment/transaction/' + acquirer_id, 'call', {}).then(function (data) {
-          alert('back to JS, data:');
-          console.log(data);
           $(data).appendTo('body').submit();
       });
       return false;
   }
     function renderAddressTemplate(data){
       // Render address template into modal body
-      // Params: data, consisting of mode and partner_id
-      // if there is any. Depends on type of event.
+      // Params: data, consisting partner_id in case of edit event
       console.log(data);
       ajax.jsonRpc('/shop/checkout/render_address/', 'call', data)
           .then(function(result) {
@@ -152,8 +138,7 @@ odoo.define("website_sale_osc", function (require) {
                       ev.stopPropagation();
 
                       // Upon confirmation, validate data.
-                      // Forward mode to controller in case of Add New Billing Address event
-                      validateModalAddress(data.mode);
+                      validateModalAddress();
                       return false;
                   });
                   return false;
@@ -183,32 +168,6 @@ odoo.define("website_sale_osc", function (require) {
           }
   });
 
-  // from website_sale.js
-  $('#osc_billing').on('click', '.js_change_billing', function() {
-          if (!$('body.editor_enable').length) { //allow to edit button text with editor
-            var $old = $('.all_billing').find('.panel.border_primary');
-            $old.find('.btn-bill').toggle();
-            $old.addClass('js_change_billing');
-            $old.removeClass('border_primary');
-
-            // alert('customizing billing buttons');
-            // $replace.find('.btn-ship').addClass('btn-bill').removeClass('btn-ship');
-            // $replace.find('.js_change_shipping').addClass('js_change_billing').removeClass('js_change_shipping');
-
-
-
-            var $new = $(this).parent('div.one_kanban').find('.panel');
-            $new.find('.btn-bill').toggle();
-            $new.removeClass('js_change_billing');
-            $new.addClass('border_primary');
-
-
-            var $form = $(this).parent('div.one_kanban').find('form.hide');
-            $.post($form.attr('action'), $form.serialize()+'&xhr=1');
-             //$new.find('.btn-primary').text("Current billing address");
-          }
-  });
-
   // Edit Billing Address
   function editBilling() {
         // If the user leaves the modal after a wrong input and
@@ -218,12 +177,11 @@ odoo.define("website_sale_osc", function (require) {
 
         var title = 'Billing Address';
         var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
-        alert(partner_id);
+        alert("Edit billing: " + partner_id);
 
         var data = {
             'title':title,
             'partner_id':partner_id,
-            'mode':['edit', 'billing']
         };
 
         renderAddressTemplate(data);
@@ -243,37 +201,11 @@ odoo.define("website_sale_osc", function (require) {
         var data = {
             'title':title,
             'partner_id':partner_id,
-            'mode':['edit', 'shipping']
         };
 
         renderAddressTemplate(data);
         return false;
   }
-    // Add new Billing Address
-   function addBilling () {
-        // If the user leaves the modal after a wrong input and
-        // and opens the add-shipping-address modal, those
-        // fields will be still highlighted red.
-        $('.oe_website_sale_osc .has-error').removeClass('has-error');
-
-
-
-        // additional required fields?? See template website_sale.address , line 1254
-        $('input[name=field_required]').val('phone,name');
-
-        var title = 'Billing Address';
-        var data = {
-            'title':title,
-            'mode': ['new', 'billing']
-        };
-
-        renderAddressTemplate(data);
-
-        // TODO for logged in users 5 of .modal-backdrop divs get created
-        // TODO which make the background turn black upon modal activation
-        // TODO FIX IT
-        $(".modal-backdrop.in").remove(); // bootstrap leaves a modal-backdrop
-   }
 
    // Add New Shipping Address
   function addShipping() {
@@ -285,7 +217,6 @@ odoo.define("website_sale_osc", function (require) {
         var title = 'Shipping Address';
         var data = {
             'title':title,
-            'mode': ['new', 'shipping']
         };
 
         renderAddressTemplate(data);
@@ -360,9 +291,6 @@ odoo.define("website_sale_osc", function (require) {
 
     // Editing shipping address
     $('.js-shipping-address .js_edit_address').on('click', editShipping);
-
-    // ADD NEW BILLING ADDRESS
-    $("#add-billing-address").on('click', 'a', addBilling);
 
     // ADD NEW SHIPPING ADDRESS
     $("#add-shipping-address").on('click', 'a', addShipping);
