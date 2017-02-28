@@ -50,88 +50,7 @@
                         <!--/t[1]/t[1]/div[1]/div[1]/div[1]/-->
                         <div class="row">
                             <div id="col-1" class="col-md-4 oe_mycart">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <h3 class="page-header mt16">
-                                            Billing Address
-                                            <small t-if="order.partner_id.id == request.website.user_id.sudo().partner_id.id">
-										    or
-										    <a class='btn btn-primary' t-attf-href="/web/login?redirect=#{ request.httprequest.url }">
-											Sign in
-										    </a>
-                                            </small>
-                                        </h3>
-                                    </div>
-                                    <!--TODO: ADAPT THIS PART-->
-                                    <div id="osc_billing" class="all_billing js-billing-address">
-                                        <div class="col-md-12">
-                                            <div class="row mt8">
-                                                <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
-                                                    <t t-call="website_sale.address_kanban">
-                                                        <t t-set='contact' t-value="order.partner_id"/>
-                                                        <t t-set='selected' t-value="1"/>
-                                                        <t t-set='readonly' t-value="1"/>
-                                                    </t>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- TODO: [REF] Don't display Shipping Address for Public User if there is no Billing Addres-->
-                                <t t-if="not only_services and order.partner_id.id != request.website.user_id.sudo().partner_id.id">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <h3 class="page-header mt16">Shipping Address
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    <div id="osc_shipping" class="row all_shipping js-shipping-address">
-                                        <div class="col-md-12">
-                                            <div class="row mt8">
-                                                <div id="add-shipping-address" class="col-sm-12 col-md-12 one_kanban">
-                                                        <a type="button" class='btn btn-default mb16 btn-block' title="Address">
-                                                            <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
-                                                        </a>
-                                                </div>
-                                                <t t-foreach="shippings" t-as="ship">
-                                                    <div class="col-sm-12 col-md-12 one_kanban">
-                                                        <t t-call="website_sale.address_kanban">
-                                                            <t t-set='contact' t-value="ship"/>
-                                                            <t t-set='selected' t-value="order.partner_shipping_id==ship"/>
-                                                            <t t-set='readonly' t-value="bool(len(shippings)==1)"/>
-                                                            <t t-set='edit_billing' t-value="bool(ship==order.partner_id)"/>
-                                                        </t>
-                                                    </div>
-                                                </t>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </t>
-                                <div class="clearfix" />
-
-                                <!--Modal for Public User Address-->
-                                <!--TODO: Implement Modal-->
-                                <div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                        aria-hidden="true">X
-                                                </button>
-                                                <h4 class="modal-title"></h4>
-                                            </div>
-                                            <div class="modal-body address-form">
-                                                <!--checkout_autoformat is needed so that country select function
-                                                in website_sale.js can be called, this div will be replaced
-                                                with real modal content-->
-                                                <div class="checkout_autoformat"></div>
-                                            </div>
-                                            <div class="modal-footer">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <t t-call="website_sale_one_step_checkout.address"/>
                             </div>
 
                                         <!-- Delivery Methods Start -->
@@ -418,6 +337,104 @@
             </div>
 		</template>
 
+        <template id="address">
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 class="page-header mt16">
+                        Billing Address
+                        <small t-if="order.partner_id.id == request.website.user_id.sudo().partner_id.id">
+                        or
+                        <a class='btn btn-primary' t-attf-href="/web/login?redirect=#{ request.httprequest.url }">
+                        Sign in
+                        </a>
+                        </small>
+                    </h3>
+                </div>
+                <!--TODO: ADAPT THIS PART-->
+                <t t-if="order.partner_id.id == request.website.user_id.sudo().partner_id.id">
+                    <div class="col-md-12">
+                        <div class="row mt8">
+                            <div id="add-public-user-address" class="col-sm-12 col-md-12 one_kanban">
+                                <a type="button" class='btn btn-default mb16 btn-block' title="Address">
+                                    <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
+                                </a>
+                            </div>
+                        </div>
+                </div>
+                </t>
+                <t t-if="order.partner_id.id != request.website.user_id.sudo().partner_id.id">
+                    <div id="osc_billing" class="all_billing js-billing-address">
+                        <div class="col-md-12">
+                            <div class="row mt8">
+                                <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
+                                    <t t-call="website_sale.address_kanban">
+                                        <t t-set='contact' t-value="order.partner_id"/>
+                                        <t t-set='selected' t-value="1"/>
+                                        <t t-set='readonly' t-value="1"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- TODO: [REF] Don't display Shipping Address for Public User if there is no Billing Addres-->
+            <t t-if="not only_services and order.partner_id.id != request.website.user_id.sudo().partner_id.id">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3 class="page-header mt16">Shipping Address
+                        </h3>
+                    </div>
+                </div>
+                <div id="osc_shipping" class="row all_shipping js-shipping-address">
+                    <div class="col-md-12">
+                        <div class="row mt8">
+                            <div id="add-shipping-address" class="col-sm-12 col-md-12 one_kanban">
+                                    <a type="button" class='btn btn-default mb16 btn-block' title="Address">
+                                        <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
+                                    </a>
+                            </div>
+                            <t t-foreach="shippings" t-as="ship">
+                                <div class="col-sm-12 col-md-12 one_kanban">
+                                    <t t-call="website_sale.address_kanban">
+                                        <t t-set='contact' t-value="ship"/>
+                                        <t t-set='selected' t-value="order.partner_shipping_id==ship"/>
+                                        <t t-set='readonly' t-value="bool(len(shippings)==1)"/>
+                                        <t t-set='edit_billing' t-value="bool(ship==order.partner_id)"/>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <div class="clearfix" />
+
+            <!--Modal for Public User Address-->
+            <!--TODO: Implement Modal-->
+            <div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"
+                                    aria-hidden="true">X
+                            </button>
+                            <h4 class="modal-title"></h4>
+                        </div>
+                        <div class="modal-body address-form">
+                            <!--checkout_autoformat is needed so that country select function
+                            in website_sale.js can be called, this div will be replaced
+                            with real modal content-->
+                            <div class="checkout_autoformat"></div>
+                        </div>
+                        <div class="modal-footer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
         <template id="update_displayed_shippings">
             <div class="col-md-12">
                 <div class="row mt8">
@@ -454,6 +471,10 @@
                     </div>
                 </div>
             </div>
+        </template>
+
+        <template id="update-public-user-address">
+
         </template>
 
 

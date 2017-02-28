@@ -50,8 +50,9 @@ class WebsiteSale(WebsiteSale):
             values['checkout'] = {'street': partner.street_name,
                                        'street_number': partner.street_number}
 
+        if post.get('public_user'):
+            return values
         result = self.payment(post=post)
-        print "result.qcontext:", result.qcontext
         values.update(result.qcontext)
 
         # Avoid useless rendering if called in ajax
@@ -123,7 +124,6 @@ class WebsiteSale(WebsiteSale):
                 if mode[1] == 'billing':
                     order.partner_id = partner_id
                     order.onchange_partner_id()
-                elif mode[1] == 'shipping':
                     order.partner_shipping_id = partner_id
 
                 order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
@@ -138,11 +138,11 @@ class WebsiteSale(WebsiteSale):
                             'shippings':shippings,
                             'order':order
                         }
-                        template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_shippings",
+                        shipping_template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_shippings",
                                                                              render_values)
                         return {
                             'success':True,
-                            'template':template,
+                            'template':shipping_template,
                             'mode':mode
                         }
 
@@ -150,11 +150,27 @@ class WebsiteSale(WebsiteSale):
                     # Update displayed billing address
                     # TODO remove
                     if mode[1] == 'billing':
+                        # order = request.website.sudo().sale_get_order()
+
+                        if mode[0] == 'new':
+                            # New public user address
+                            render_values = self.checkout(**{'public_user':True})
+                            template = request.env['ir.ui.view'].render_template(
+                                "website_sale_one_step_checkout.address",
+                                render_values)
+                            return {
+                                'success':True,
+                                'template':template,
+                                'mode': mode
+                            }
+
                         render_values = {
-                            'order':order
+                            'order': order,
                         }
-                        template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_billings",
-                                                                             render_values)
+                        template = request.env['ir.ui.view'].render_template(
+                            "website_sale_one_step_checkout.update_displayed_billings",
+                            render_values)
+
                         return {
                             'success':True,
                             'template':template,

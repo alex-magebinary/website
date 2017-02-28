@@ -69,22 +69,32 @@ odoo.define("website_sale_osc", function (require) {
 
                   // TODO ACTIVATE JS FOR NEWLY INSERTED VIEWS
                   if(result.mode[1] == 'shipping'){
-                          // Update Shippings view
+                          // Update Shipping address view
                           $('.js-shipping-address').html(result.template);
 
                           // Re-enable JS eventlisteners
                           $('.js-shipping-address .js_edit_address').on('click', editShipping);
                           $("#add-shipping-address").on('click', 'a', addShipping);
 
-                  } else{
-                      // Update Billings view
-                      $('.js-billing-address').html(result.template);
-                      adjustBillingButtons();
+                  } else {
+                      if (result.mode[0] == 'new') {
+                          // Update public user address
+
+                          $('#col-1').html(result.template)
+                          $('.modal-backdrop.in').remove()
+
+                          $('.js-shipping-address .js_edit_address').on('click', editShipping);
+                          $("#add-shipping-address").on('click', 'a', addShipping);
+                      } else {
+                          // Update Billing address view
+                          $('.js-billing-address').html(result.template);
+                          // adjustBillingButtons();
 
 
-                      // Re-enable JS event listeners
-                      $('.js-billing-address .js_edit_address').on('click', editBilling);
+                          // Re-enable JS event listeners
+                          $('.js-billing-address .js_edit_address').on('click', editBilling);
                       }
+                  }
                   return false;
           } else if (result.errors) {
             for (var key in result.errors) {
@@ -118,7 +128,27 @@ odoo.define("website_sale_osc", function (require) {
       });
       return false;
   }
-    function renderAddressTemplate(data){
+
+
+  // Adding Public User Address
+  function addPublicUserAddress() {
+        // If the user leaves the modal after a wrong input and
+        // and opens the add-billing-address modal, those
+        // fields will be still highlighted red.
+        removeErrors();
+
+        var title = 'Billing Address';
+        // var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
+        // alert(partner_id);
+
+        var data = {
+            'title':title,
+        };
+
+        renderAddressTemplate(data);
+  }
+
+  function renderAddressTemplate(data){
       // Render address template into modal body
       // Params: data, consisting partner_id in case of edit event
       console.log(data);
@@ -129,9 +159,9 @@ odoo.define("website_sale_osc", function (require) {
 
                   $('#address-modal .modal-header h4').html(data.title);
                   $('#address-modal .modal-body').html(result.template);
-                      // TODO for logged in users 5 of .modal-backdrop divs get created
-                    // TODO which make the background turn black upon modal activation
-                    // TODO FIX IT
+                  // TODO for logged in users modal-backdrop div gets 5x created
+                  // TODO which make the background turn black upon modal activation
+                  // TODO FIX IT
                   //$(".modal-backdrop in").remove(); // bootstrap leaves a modal-backdrop
                   $('#js_confirm_address').on('click', function(ev){
                       ev.preventDefault();
@@ -222,17 +252,17 @@ odoo.define("website_sale_osc", function (require) {
         renderAddressTemplate(data);
   }
 
-  function adjustBillingButtons(){
-       var $replace = $('.all_billing');
-            $replace.find('.btn-ship').addClass('btn-bill').removeClass('btn-ship');
-            $replace.find('.js_change_shipping').addClass('js_change_billing').removeClass('js_change_shipping');
-            $replace.find('.btn-primary').html('<i class="fa fa-check"></i>Current billing address');
-            
-  }
+  // function adjustBillingButtons(){
+  //      var $replace = $('.all_billing');
+  //           $replace.find('.btn-ship').addClass('btn-bill').removeClass('btn-ship');
+  //           $replace.find('.js_change_shipping').addClass('js_change_billing').removeClass('js_change_shipping');
+  //           $replace.find('.btn-primary').html('<i class="fa fa-check"></i>Current billing address');
+  //
+  // }
 
 
   base.dom_ready.done(function () {
-      adjustBillingButtons();
+      // adjustBillingButtons();
 
       // when choosing a delivery carrier, update the total prices
       // original part in website_sale_delivery.js uses `delivery_carrier`
@@ -284,40 +314,38 @@ odoo.define("website_sale_osc", function (require) {
           return false;
       });
 
+      // Add Public User Address
+      $('#add-public-user-address').on('click', addPublicUserAddress);
+      // Editing Billing Address
+      $('.js-billing-address .js_edit_address').on('click', editBilling);
 
-    // Editing Billing Address
-    $('.js-billing-address .js_edit_address').on('click', editBilling);
+      // Editing shipping address
+      $('.js-shipping-address .js_edit_address').on('click', editShipping);
 
+      // ADD NEW SHIPPING ADDRESS
+      $("#add-shipping-address").on('click', 'a', addShipping);
 
-    // Editing shipping address
-    $('.js-shipping-address .js_edit_address').on('click', editShipping);
-
-    // ADD NEW SHIPPING ADDRESS
-    $("#add-shipping-address").on('click', 'a', addShipping);
-
-    // Opens modal view when clicking on terms and condition link in
-    // onestepcheckout, it loads terms and conditions page and render only wrap
-    // container content in modal body
-    $('.checkbox-modal-link').on('click', 'a', function(ev) {
-      var elm   = $(ev.currentTarget)
-        , title = elm.attr('title')
-        , page  = elm.attr('data-page-id');
-
-      $.get(page, function (data) {
-        var modalBody = $(data).find('main .oe_structure').html();
-        if (title) {
-          $('#checkbox-modal .modal-header h4').text(title);
-        }
-        if (!modalBody) {
-          modalBody = '<div class="container"><div class="col-md-12"><p>Informationen text</p></div></div>';
-        }
-        $('#checkbox-modal .modal-body').html(modalBody);
-        $('#checkbox-modal').modal();
-        return false;
+      // Opens modal view when clicking on terms and condition link in
+      // onestepcheckout, it loads terms and conditions page and render only wrap
+      // container content in modal body
+      $('.checkbox-modal-link').on('click', 'a', function(ev) {
+          var elm   = $(ev.currentTarget)
+              , title = elm.attr('title')
+              , page  = elm.attr('data-page-id');
+          $.get(page, function (data) {
+              var modalBody = $(data).find('main .oe_structure').html();
+              if (title) {
+                  $('#checkbox-modal .modal-header h4').text(title);
+              }
+              if (!modalBody) {
+                  modalBody = '<div class="container"><div class="col-md-12"><p>Informationen text</p></div></div>';
+              }
+              $('#checkbox-modal .modal-body').html(modalBody);
+              $('#checkbox-modal').modal();
+              return false;
+          });
       });
-    });
-
-    // END DOM
+      // END DOM
   });
 
 });
