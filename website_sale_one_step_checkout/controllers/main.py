@@ -24,9 +24,6 @@ class WebsiteSale(WebsiteSale):
         # must have a draft sale order with lines at this point, otherwise reset
         order = request.website.sale_get_order()
 
-        for key, value in order.__dict__.iteritems():
-            print key, value
-
         # TODO: remove?
         redirection = self.checkout_redirection(order)
         if redirection:
@@ -50,8 +47,11 @@ class WebsiteSale(WebsiteSale):
             values['checkout'] = {'street': partner.street_name,
                                        'street_number': partner.street_number}
 
+        # To avoid access problems when rendering
+        # the address template for public user
         if post.get('public_user'):
             return values
+
         result = self.payment(post=post)
         values.update(result.qcontext)
 
@@ -124,58 +124,60 @@ class WebsiteSale(WebsiteSale):
                 if mode[1] == 'billing':
                     order.partner_id = partner_id
                     order.onchange_partner_id()
+                elif mode[1] == 'shipping':
                     order.partner_shipping_id = partner_id
 
                 order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
 
-                if not errors:
-                    # [REF]
-                    # Update displayed shipping addresses
-                    if mode[1] == 'shipping':
-                        if not shippings:
-                            shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
-                        render_values = {
-                            'shippings':shippings,
-                            'order':order
-                        }
-                        shipping_template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_shippings",
-                                                                             render_values)
-                        return {
-                            'success':True,
-                            'template':shipping_template,
-                            'mode':mode
-                        }
+                # [REF]
+                # Update displayed shipping addresses
+                if mode[1] == 'shipping':
+                    if not shippings:
+                        shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)])
+                    render_values = {
+                        'shippings':shippings,
+                        'order':order
+                    }
+                    shipping_template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.update_displayed_shippings",
+                                                                         render_values)
+                    return {
+                        'success':True,
+                        'template':shipping_template,
+                        'mode':mode
+                    }
 
-                    # [REF]
-                    # Update displayed billing address
-                    # TODO remove
-                    if mode[1] == 'billing':
-                        # order = request.website.sudo().sale_get_order()
+                # [REF]
+                # Update displayed billing address
+                # TODO remove
+                if mode[1] == 'billing':
+                    # order = request.website.sudo().sale_get_order()
 
-                        if mode[0] == 'new':
-                            # New public user address
-                            render_values = self.checkout(**{'public_user':True})
-                            template = request.env['ir.ui.view'].render_template(
-                                "website_sale_one_step_checkout.address",
-                                render_values)
-                            return {
-                                'success':True,
-                                'template':template,
-                                'mode': mode
-                            }
-
-                        render_values = {
-                            'order': order,
-                        }
+                    if mode[0] == 'new':
+                        # New public user address
+                        # To avoid access problems when rendering
+                        # the address template, fetch new values
+                        render_values = self.checkout(**{'public_user':True})
                         template = request.env['ir.ui.view'].render_template(
-                            "website_sale_one_step_checkout.update_displayed_billings",
+                            "website_sale_one_step_checkout.address",
                             render_values)
-
                         return {
                             'success':True,
                             'template':template,
-                            'mode':mode
+                            'mode': mode
                         }
+
+                    render_values = {
+                        'order': order,
+                    }
+                    template = request.env['ir.ui.view'].render_template(
+                        "website_sale_one_step_checkout.update_displayed_billings",
+                        render_values)
+
+                    return {
+                        'success':True,
+                        'template':template,
+                        'mode':mode
+                    }
 
         country = 'country_id' in values and values['country_id'] != '' and request.env['res.country'].browse(
             int(values['country_id']))
@@ -209,12 +211,9 @@ class WebsiteSale(WebsiteSale):
     def validate_checkout(self, **post):
         """Address controller."""
         # must have a draft sale order with lines at this point, otherwise redirect to shop
-        print "VALIDATE CHECKOUT"
         SaleOrder = request.env['sale.order']
         order = request.website.sale_get_order()
 
-
-        # TODO Taken over from v8.0 OSC. Is this necessary?
         if not order or order.state != 'draft' or not order.order_line:
             request.session['sale_order_id'] = None
             request.session['sale_transaction_id'] = None
@@ -223,15 +222,11 @@ class WebsiteSale(WebsiteSale):
         # if transaction pending / done: redirect to confirmation
         tx = request.env.context.get('website_sale_transaction')
         if tx and tx.state != 'draft':
-            print ('# if transaction pending / done: redirect to confirmation')
             return request.redirect('/shop/payment/confirmation/%s' % order.id)
 
         # [REF] shop/confirm_order
         order.onchange_partner_shipping_id()
         order.order_line._compute_tax_id()
-        print "SETTING LAST ORDER VIA request.session['sale_last_order_id'] = order.id", order.id
-        request.session['sale_last_order_id'] = order.id
-        request.website.sale_get_order(update_pricelist=True)
         extra_step = request.env.ref('website_sale.extra_info_option')
         # TODO: HOW TO HANDLE THIS CASE?
         if extra_step.active:
@@ -242,7 +237,7 @@ class WebsiteSale(WebsiteSale):
 
         shipping_partner_id = False
         if order:
-            if order.partner_shipping_id.id:
+            if order.partner_shipping_id:
                 shipping_partner_id = order.partner_shipping_id.id
             else:
                 shipping_partner_id = order.partner_invoice_id.id
@@ -254,8 +249,6 @@ class WebsiteSale(WebsiteSale):
         }
         values['errors'] = SaleOrder._get_errors(order)
         values.update(SaleOrder._get_website_data(order))
-        print "updated values of SaleOrder"
-        print values
 
         # if not values['errors']:
         #     acquirers = request.env['payment.acquirer'].search(
@@ -306,10 +299,6 @@ class WebsiteSale(WebsiteSale):
         Change and apply delivery carrier / amount to sale order.
         """
         order = request.website.sale_get_order()
-        print 'DO CHANGE DELIVERY'
-        print 'DO CHANGE DELIVERY'
-        print 'DO CHANGE DELIVERY'
-        print 'DO CHANGE DELIVERY'
         carrier_id = int(post.get('carrier_id'))
 
         return self.do_change_delivery(order, carrier_id)
@@ -328,10 +317,6 @@ class WebsiteSale(WebsiteSale):
         # generate updated total prices
         updated_order = request.website.sale_get_order()
         updated_order._check_carrier_quotation(force_carrier_id=carrier_id)
-        print "updated_order"
-        print updated_order
-        for key, value in order.__dict__.iteritems():
-            print key, value
         updated_order.delivery_set()
 
         rml_obj = report_sxw.rml_parse(request.cr, SUPERUSER_ID,
