@@ -33,19 +33,17 @@ odoo.define("website_sale_osc", function (require) {
           window.location.href = '/shop';
         }
       });
-
   }
 
   function getPostAddressFields(elms, data) {
         elms.each(function(index) {
             data[$(this).attr('name')] = $(this).val();
         });
-
-
         return data;
   };
 
   function validateModalAddress(){
+      console.log('validateModalAddress');
       var billingElems = $('#osc_billing input, #osc_billing select')
           , data = {};
 
@@ -59,129 +57,97 @@ odoo.define("website_sale_osc", function (require) {
 
       ajax.jsonRpc('/shop/checkout/render_address/', 'call', data)
           .then(function (result) {
-              console.log(result);
               if (result.success) {
-                  alert("result successful");
                   $('#js_confirm_address').attr("disabled", false);
+
+                  // Update frontend address view
+                  $('#col-1').html(result.template)
+
+                  // Re-enable JS event listeners
+                  $('.js-billing-address .js_edit_address').on('click', editBilling);
+                  $('.js-shipping-address .js_edit_address').on('click', editShipping);
+                  $("#add-shipping-address").on('click', 'a', addShipping);
+                  chooseShipping();
+
+                  // hide Modal
                   $('#address-modal').modal('hide');
-            // TODO: Once first address is created what happens to:
-            //  if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-
-                  // TODO ACTIVATE JS FOR NEWLY INSERTED VIEWS
-                  if(result.mode[1] == 'shipping'){
-                          // Update Shipping address view
-                          $('.js-shipping-address').html(result.template);
-
-                          // Re-enable JS eventlisteners
-                          $('.js-shipping-address .js_edit_address').on('click', editShipping);
-                          $("#add-shipping-address").on('click', 'a', addShipping);
-
-                  } else {
-                      if (result.mode[0] == 'new') {
-                          // Update public user address
-
-                          $('#col-1').html(result.template)
-                          $('.modal-backdrop.in').remove()
-
-                          $('.js-shipping-address .js_edit_address').on('click', editShipping);
-                          $("#add-shipping-address").on('click', 'a', addShipping);
-                      } else {
-                          // Update Billing address view
-                          $('.js-billing-address').html(result.template);
-                          // adjustBillingButtons();
-
-
-                          // Re-enable JS event listeners
-                          $('.js-billing-address .js_edit_address').on('click', editBilling);
+          } else if (result.errors) {
+                  for (var key in result.errors) {
+                      if ($('.oe_website_sale_osc input[name=' + key + ']').length > 0) {
+                          $('.oe_website_sale_osc input[name=' + key + ']').parent().addClass('has-error');
+                      } else if ($('.oe_website_sale_osc select[name=' + key + ']').length > 0) {
+                          $('.oe_website_sale_osc select[name=' + key + ']').parent().addClass('has-error');
                       }
                   }
-                  return false;
-          } else if (result.errors) {
-            for (var key in result.errors) {
-              if ($('.oe_website_sale_osc input[name=' + key + ']').length > 0) {
-                $('.oe_website_sale_osc input[name=' + key + ']').parent().addClass('has-error');
-              } else if ($('.oe_website_sale_osc select[name=' + key + ']').length > 0) {
-                $('.oe_website_sale_osc select[name=' + key + ']').parent().addClass('has-error');
+              } else {
+                  // ???
+                  window.location.href = '/shop';
               }
-            }
-          } else {
-          // ???
-          window.location.href = '/shop';
-        }
-
-      });
+          });
   }
 
-
-  function validateCheckout() {
-        //Todo: this is now just preliminary to set the last_order_id.
-      alert('Validate Checkout');
-      ajax.jsonRpc('/shop/checkout/validate_checkout/', 'call', {});
-    };
-
   function startTransaction(acquirer_id){
-     // TODO UPDATE THIS
+     // TODO: WHAT HAPPENS TO THIS?
       // form.off('submit');
-      alert("start Transaction with acquirer id: " + acquirer_id);
       ajax.jsonRpc('/shop/payment/transaction/' + acquirer_id, 'call', {}).then(function (data) {
           $(data).appendTo('body').submit();
       });
       return false;
   }
 
-
-  // Adding Public User Address
-  function addPublicUserAddress() {
-        // If the user leaves the modal after a wrong input and
-        // and opens the add-billing-address modal, those
-        // fields will be still highlighted red.
-        removeErrors();
-
-        var title = 'Billing Address';
-        // var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
-        // alert(partner_id);
-
-        var data = {
-            'title':title,
-        };
-
-        renderAddressTemplate(data);
+  function validateAddressForm(){
+      return ajax.jsonRpc('/shop/checkout/validate_address_form', 'call', {}).then(function (result){
+         if(result.success){
+             return result;
+         } else{
+             editBilling(result);
+             return result;
+         }
+      });
   }
 
-  function renderAddressTemplate(data){
+  // For Public User
+  function addPublicUserAddress() {
+      // If the user leaves the modal after a wrong input and
+      // and opens the add-billing-address modal, those
+      // fields will be still highlighted red.
+      removeErrors();
+
+      var title = 'Billing Address';
+
+      var data = {
+          'title':title,
+      };
+
+      renderModal(data);
+  }
+
+  function renderModal(data){
       // Render address template into modal body
-      // Params: data, consisting partner_id in case of edit event
-      console.log(data);
+      // Params: data, containing partner_id in case of edit event
+
       ajax.jsonRpc('/shop/checkout/render_address/', 'call', data)
           .then(function(result) {
+              $('#address-modal').modal('show');
               if(result.success) {
-                  $('#address-modal').modal();
 
                   $('#address-modal .modal-header h4').html(data.title);
                   $('#address-modal .modal-body').html(result.template);
-                  // TODO for logged in users modal-backdrop div gets 5x created
-                  // TODO which make the background turn black upon modal activation
-                  // TODO FIX IT
-                  //$(".modal-backdrop in").remove(); // bootstrap leaves a modal-backdrop
-                  $('#js_confirm_address').on('click', function(ev){
-                      ev.preventDefault();
-                      ev.stopPropagation();
-
-                      // Upon confirmation, validate data.
-                      validateModalAddress();
-                      return false;
-                  });
-                  return false;
               }
-          })
+          });
   }
 
   function removeErrors(){
-        $('.oe_website_sale_osc .has-error').removeClass('has-error');
+      // If the user leaves the modal after a wrong input and
+      // and opens the add-billing-address modal, those
+      // fields will be still highlighted red.
+      $('.oe_website_sale_osc .has-error').removeClass('has-error');
   }
 
-  // from website_sale.js
-  $('#osc_shipping').on('click', '.js_change_shipping', function() {
+
+  function chooseShipping(){
+      // from website_sale.js
+      $('#osc_shipping').on('click', '.js_change_shipping', function() {
           if (!$('body.editor_enable').length) { //allow to edit button text with editor
             var $old = $('.all_shipping').find('.panel.border_primary');
             $old.find('.btn-ship').toggle();
@@ -197,24 +163,37 @@ odoo.define("website_sale_osc", function (require) {
             $.post($form.attr('action'), $form.serialize()+'&xhr=1');
           }
   });
+  }
 
   // Edit Billing Address
-  function editBilling() {
+  function editBilling(result) {
         // If the user leaves the modal after a wrong input and
         // and opens the add-billing-address modal, those
         // fields will be still highlighted red.
         removeErrors();
 
         var title = 'Billing Address';
-        var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
-        alert("Edit billing: " + partner_id);
+        var partner_id;
+
+        if(result.partner_id) {
+            // This argument will be
+            // returned by the controller validate_address_form
+            // after its call from the validateAddressForm JS function below.
+            // It's necessary in the situation where there exist
+            // a name and e-mail from the sign-up procedure, but no
+            // further mandatory billing data. This will trigger the
+            // modal in "Edit Billing Address" mode.
+            partner_id = result.partner_id;
+        } else{
+            partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
+        }
 
         var data = {
-            'title':title,
-            'partner_id':partner_id,
-        };
+                'title':title,
+                'partner_id':partner_id,
+            };
 
-        renderAddressTemplate(data);
+        renderModal(data);
   }
 
   // Edit Shipping Address
@@ -226,15 +205,12 @@ odoo.define("website_sale_osc", function (require) {
 
         var title = 'Shipping Address';
         var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
-        alert(partner_id);
-
         var data = {
             'title':title,
             'partner_id':partner_id,
         };
 
-        renderAddressTemplate(data);
-        return false;
+        renderModal(data);
   }
 
    // Add New Shipping Address
@@ -249,20 +225,13 @@ odoo.define("website_sale_osc", function (require) {
             'title':title,
         };
 
-        renderAddressTemplate(data);
+        renderModal(data);
   }
 
-  // function adjustBillingButtons(){
-  //      var $replace = $('.all_billing');
-  //           $replace.find('.btn-ship').addClass('btn-bill').removeClass('btn-ship');
-  //           $replace.find('.js_change_shipping').addClass('js_change_billing').removeClass('js_change_shipping');
-  //           $replace.find('.btn-primary').html('<i class="fa fa-check"></i>Current billing address');
-  //
-  // }
-
-
   base.dom_ready.done(function () {
-      // adjustBillingButtons();
+      // Check whether all mandatory billing fields
+      // contain data. If not, open address modal
+      validateAddressForm();
 
       // when choosing a delivery carrier, update the total prices
       // original part in website_sale_delivery.js uses `delivery_carrier`
@@ -298,23 +267,42 @@ odoo.define("website_sale_osc", function (require) {
           });
       }
 
-      // TODO: UPDATE
-      // when clicking checkout submit button validate address data,
-      // if all is fine form submit will be done in validate function because of
-      // ajax call
+      // when clicking checkout submit button validate address data first
+      // if all is fine trigger payment transaction
       $('#col-3 .js_payment').on('click', 'form button[type=submit]', function (ev) {
           ev.preventDefault();
           ev.stopPropagation();
-          // validate address and set last_order_id
-          validateCheckout();
-          // var $form = $(ev.currentTarget).parents('form');
-          // TODO IS THIS SAVE?
-          var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
-          startTransaction(acquirer_id);
+
+          // TODO is return necessary?
+          validateAddressForm()
+          .then(function (result) {
+              if(result.success){
+                  // proceed to payment transaction
+                  ajax.jsonRpc('/shop/checkout/validate_checkout/', 'call', {});
+                  return result.success;
+              } else{
+                  console.log('ups');
+                  return false;
+                  // do nothing, address modal in edit mode
+                  // is open at this point
+              }
+          })
+              .then( function (result){
+                  alert('startTransaction section, result:')
+                  console.log(result)
+                  if(result){
+                      // TODO WHAT HAPPENS IF USER MESSES WITH THE ACQUIRER_ID
+                      var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
+                      alert('triggering startTransaction');
+                      startTransaction(acquirer_id);
+                  }
+              });
+
+
           return false;
       });
 
-      // Add Public User Address
+      // Automatically open modal in 'Billing address' mode for public user
       $('#add-public-user-address').on('click', addPublicUserAddress);
       // Editing Billing Address
       $('.js-billing-address .js_edit_address').on('click', editBilling);
@@ -345,7 +333,20 @@ odoo.define("website_sale_osc", function (require) {
               return false;
           });
       });
+
+      $('#address-modal').on('click', '#js_confirm_address', function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+              // Upon confirmation, validate data.
+              validateModalAddress();
+
+              return false;
+      });
+
+
       // END DOM
+
+
   });
 
 });

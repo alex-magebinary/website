@@ -21,7 +21,7 @@
 from odoo import api, fields, models
 from odoo.addons import decimal_precision
 
-
+# TODO check if needed
 class SaleOrder(models.Model):
 
     """Overwrites and add Definitions to module: sale."""
@@ -48,11 +48,12 @@ class SaleOrder(models.Model):
 
 
 
-class ResPartner(models.Model):
-
-    """Add Fields to res.partner."""
-
-    _inherit = 'res.partner'
-
-    street_name = fields.Char(string='Street name')
-    street_number = fields.Char(tring='Street number')
+# TODO remove
+# class ResPartner(models.Model):
+#
+#     """Add Fields to res.partner."""
+#
+#     _inherit = 'res.partner'
+#
+#     street_name = fields.Char(string='Street name')
+#     street_number = fields.Char(tring='Street number')

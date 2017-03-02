@@ -53,6 +53,29 @@
                                 <t t-call="website_sale_one_step_checkout.address"/>
                             </div>
 
+                            <!--Modal for Public User Address-->
+                            <!--TODO: Implement Modal-->
+                            <div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal"
+                                                    aria-hidden="true">X
+                                            </button>
+                                            <h4 class="modal-title"></h4>
+                                        </div>
+                                        <div class="modal-body address-form">
+                                            <!--checkout_autoformat is needed so that country select function
+                                            in website_sale.js can be called, this div will be replaced
+                                            with real modal content-->
+                                            <div class="checkout_autoformat"></div>
+                                        </div>
+                                        <div class="modal-footer">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                                         <!-- Delivery Methods Start -->
                             <div id="col-2" class="col-md-4 oe_mycart">
                                 <div t-if="deliveries" id="delivery_carrier_osc">
@@ -410,29 +433,6 @@
                 </div>
             </t>
             <div class="clearfix" />
-
-            <!--Modal for Public User Address-->
-            <!--TODO: Implement Modal-->
-            <div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"
-                                    aria-hidden="true">X
-                            </button>
-                            <h4 class="modal-title"></h4>
-                        </div>
-                        <div class="modal-body address-form">
-                            <!--checkout_autoformat is needed so that country select function
-                            in website_sale.js can be called, this div will be replaced
-                            with real modal content-->
-                            <div class="checkout_autoformat"></div>
-                        </div>
-                        <div class="modal-footer">
-                        </div>
-                    </div>
-                </div>
-            </div>
         </template>
 
         <template id="update_displayed_shippings">
