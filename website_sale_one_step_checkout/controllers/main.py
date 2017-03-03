@@ -3,17 +3,13 @@
 # © 2016 Antiun Ingeniería S.L. - Jairo Llopis
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 from odoo.addons.website_sale.controllers.main import WebsiteSale
+from odoo.addons.website_sale_one_step_checkout_delivery.controllers.main import WebsiteSaleOneStepCheckoutDelivery
 from odoo.http import request, redirect_with_hash
-from odoo.report import report_sxw
-from odoo import http, SUPERUSER_ID
+from odoo import http
 from werkzeug.exceptions import Forbidden
 
 
 class WebsiteSale(WebsiteSale):
-    mandatory_billing_fields = ["name", "phone", "email", "street", "city", "country_id", "zip"]
-    optional_billing_fields = ["street2", "state_id", "vat", "vat_subjected"]
-
-
     @http.route(['/shop/checkout'], type='http', auth='public', website=True, multilang=True)
     def checkout(self, **post):
         """Use one step checkout if enabled. Fall back to normal otherwise."""
@@ -242,51 +238,6 @@ class WebsiteSale(WebsiteSale):
         # TODO TAKE CARE OF ERRORS
 
 
-    @http.route(['/shop/checkout/change_delivery'], type='json', auth="public", website=True, multilang=True)
-    def change_delivery(self, **post):
-        """
-        If delivery method was changed in frontend.
-
-        Change and apply delivery carrier / amount to sale order.
-        """
-        order = request.website.sale_get_order()
-        carrier_id = int(post.get('carrier_id'))
-
-        return self.do_change_delivery(order, carrier_id)
-
-    def do_change_delivery(self, order, carrier_id):
-        """Apply delivery amount to current sale order."""
-        if not order or not carrier_id:
-            return {'success': False}
-
-        # order_id is needed to get delivery carrier price
-        # TODO: recheck if this is correct
-        if not request.context.get('order_id'):
-            context = dict(request.context)
-            context.update({'order_id': order.id})
-
-        # generate updated total prices
-        updated_order = request.website.sale_get_order()
-        updated_order._check_carrier_quotation(force_carrier_id=carrier_id)
-        updated_order.delivery_set()
-
-        rml_obj = report_sxw.rml_parse(request.cr, SUPERUSER_ID,
-                                       request.env['product.product']._name,
-                                       context=context)
-        price_digits = rml_obj.get_digits(dp='Product Price')
-
-        result = {
-            'success': True,
-            'order_total': rml_obj.formatLang(updated_order.amount_total,
-                                              digits=price_digits),
-            'order_total_taxes': rml_obj.formatLang(updated_order.amount_tax,
-                                                    digits=price_digits),
-            'order_total_delivery': rml_obj.formatLang(
-                updated_order.amount_delivery, digits=price_digits)
-        }
-
-        return result
-
     # TODO: is this part necessary?
     @http.route()
     def cart(self, **post):
@@ -302,7 +253,7 @@ class WebsiteSale(WebsiteSale):
                     change_delivery = False
                     break
             if change_delivery:
-                self.do_change_delivery(values['website_sale_order'], dc_ids[0])
+                WebsiteSaleOneStepCheckoutDelivery.do_change_delivery(values['website_sale_order'], dc_ids[0])
 
         return request.render(response_object.template, values)
 

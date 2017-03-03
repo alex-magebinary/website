@@ -14,13 +14,13 @@
     'license': 'AGPL-3',
     'depends': [
         'website',
-        'website_sale_delivery',
+        'website_sale'
     ],
     'data': [
         'security/ir.model.access.csv',
-        'security/website_sale_osc.xml',
+        'security/website_sale_one_step_checkout.xml',
         'views/res_config.xml',
-        'views/website_sale_osc.xml',
+        'views/website_sale_one_step_checkout.xml',
     ],
     'installable': True,
     'auto_install': False,

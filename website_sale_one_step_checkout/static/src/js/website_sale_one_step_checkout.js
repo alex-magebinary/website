@@ -1,40 +1,14 @@
 /**
  * Created by administrator on 14/02/2017.
  */
-odoo.define("website_sale_osc", function (require) {
+odoo.define("website_sale_one_step_checkout", function (require) {
     "use strict";
 
     var ajax = require('web.ajax');
     var base = require('web_editor.base');
+    //Todo remove?
     var website = require('website.website');
-
-    function changeDelivery(carrierId) {
-    ajax.jsonRpc('/shop/checkout/change_delivery', 'call', {'carrier_id': carrierId})
-      .then(function (result) {
-        if (result) {
-          if (result.success) {
-            if (result.order_total) {
-                $('#order_total .oe_currency_value').text(result.order_total);
-              $('.js_payment input[name=amount]').val(result.order_total);
-            }
-            if (result.order_total_taxes) {
-                $('#order_total_taxes .oe_currency_value').text(result.order_total_taxes);
-
-            }
-            if (result.order_total_delivery) {
-                $('#order_delivery .oe_currency_value').text(result.order_total_delivery);
-
-            }
-          } else if (result.errors) {
-            // ???
-          }
-        } else {
-          // ???
-          window.location.href = '/shop';
-        }
-      });
-  }
-
+    
   function getPostAddressFields(elms, data) {
         elms.each(function(index) {
             data[$(this).attr('name')] = $(this).val();
@@ -65,7 +39,7 @@ odoo.define("website_sale_osc", function (require) {
                   $('.js-billing-address .js_edit_address').on('click', editBilling);
                   $('.js-shipping-address .js_edit_address').on('click', editShipping);
                   $("#add-shipping-address").on('click', 'a', addShipping);
-                  chooseShipping();
+                  changeShipping();
 
                   // hide Modal
                   $('#address-modal').modal('hide');
@@ -143,7 +117,7 @@ odoo.define("website_sale_osc", function (require) {
   }
 
 
-  function chooseShipping(){
+  function changeShipping(){
       // from website_sale.js
       $('#osc_shipping').on('click', '.js_change_shipping', function() {
           if (!$('body.editor_enable').length) { //allow to edit button text with editor
@@ -233,17 +207,7 @@ odoo.define("website_sale_osc", function (require) {
       validateAddressForm();
 
       // activate listener
-      chooseShipping()
-
-      // when choosing a delivery carrier, update the total prices
-      // original part in website_sale_delivery.js uses `delivery_carrier`
-      // since we don't want that JS triggered, we're using our own id `delivery_carrier_osc
-      // to avoid the page reload of the original one
-      var $carrier = $('#delivery_carrier_osc');
-      $carrier.find('input[name="delivery_type"]').click(function (ev) {
-          var carrierId = $(ev.currentTarget).val();
-          changeDelivery(carrierId);
-      });
+      changeShipping()
 
       // when choosing an acquirer, display its order now button
       var $payment = $('#payment_method');
