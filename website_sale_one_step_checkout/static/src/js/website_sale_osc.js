@@ -43,7 +43,6 @@ odoo.define("website_sale_osc", function (require) {
   };
 
   function validateModalAddress(){
-      console.log('validateModalAddress');
       var billingElems = $('#osc_billing input, #osc_billing select')
           , data = {};
 
@@ -53,7 +52,6 @@ odoo.define("website_sale_osc", function (require) {
       data.submitted = true;
 
       $('.oe_website_sale_osc .has-error').removeClass('has-error');
-      alert("validate address");
 
       ajax.jsonRpc('/shop/checkout/render_address/', 'call', data)
           .then(function (result) {
@@ -205,6 +203,7 @@ odoo.define("website_sale_osc", function (require) {
 
         var title = 'Shipping Address';
         var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
+
         var data = {
             'title':title,
             'partner_id':partner_id,
@@ -232,6 +231,9 @@ odoo.define("website_sale_osc", function (require) {
       // Check whether all mandatory billing fields
       // contain data. If not, open address modal
       validateAddressForm();
+
+      // activate listener
+      chooseShipping()
 
       // when choosing a delivery carrier, update the total prices
       // original part in website_sale_delivery.js uses `delivery_carrier`
@@ -281,19 +283,15 @@ odoo.define("website_sale_osc", function (require) {
                   ajax.jsonRpc('/shop/checkout/validate_checkout/', 'call', {});
                   return result.success;
               } else{
-                  console.log('ups');
                   return false;
                   // do nothing, address modal in edit mode
                   // is open at this point
               }
           })
               .then( function (result){
-                  alert('startTransaction section, result:')
-                  console.log(result)
                   if(result){
                       // TODO WHAT HAPPENS IF USER MESSES WITH THE ACQUIRER_ID
                       var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
-                      alert('triggering startTransaction');
                       startTransaction(acquirer_id);
                   }
               });

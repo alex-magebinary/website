@@ -94,13 +94,15 @@ class WebsiteSale(WebsiteSale):
         partner_id = int(kw.get('partner_id', -1))
         shippings = []
 
+        redirection = self.checkout_redirection(order)
+        if redirection:
+            return redirection
+
         # IF PUBLIC ORDER
         if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
 
             mode = ('new', 'billing')
 
-            print("# IF PUBLIC ORDER")
-            print order.partner_id.id
             country_code = request.session['geoip'].get('country_code')
             if country_code:
                 def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
@@ -108,9 +110,7 @@ class WebsiteSale(WebsiteSale):
                 def_country_id = request.website.user_id.sudo().country_id
         # IF ORDER LINKED TO A PARTNER
         else:
-            print "# IF ORDER LINKED TO A PARTNER"
             if partner_id > 0:
-                print "if partner_id > 0:"
                 if partner_id == order.partner_id.id:
                     mode = ('edit', 'billing')
                 else:
@@ -120,12 +120,10 @@ class WebsiteSale(WebsiteSale):
                         mode = ('edit', 'shipping')
                     else:
                         return Forbidden()
-                print "MODE", mode
                 if mode:
                     # for fetching pre-filled form values
                     values = Partner.browse(partner_id)
             elif partner_id == -1:
-                print "elif partner_id == -1:"
                 mode = ('new', 'shipping')
             else:  # no mode - refresh without post?
                 return request.redirect('/shop/checkout')
@@ -133,7 +131,6 @@ class WebsiteSale(WebsiteSale):
 
         # IF POSTED
         if 'submitted' in kw:
-            print "submitted"
             pre_values = self.values_preprocess(order, mode, kw)
             errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
             post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
@@ -148,8 +145,6 @@ class WebsiteSale(WebsiteSale):
                 }
             else:
                 partner_id = self._checkout_form_save(mode, post, kw)
-                print "order.partner_id ", order.partner_id
-                print "partner_id ", partner_id
                 if mode[1] == 'billing':
                     order.partner_id = partner_id
                     order.onchange_partner_id()
@@ -210,34 +205,26 @@ class WebsiteSale(WebsiteSale):
                 multilang=True)
     def validate_checkout(self, **post):
         """Address controller."""
-        print 'validate_checkout'
         # must have a draft sale order with lines at this point, otherwise redirect to shop
         SaleOrder = request.env['sale.order']
         order = request.website.sale_get_order()
 
-        if not order or order.state != 'draft' or not order.order_line:
-            request.session['sale_order_id'] = None
-            request.session['sale_transaction_id'] = None
-            return request.redirect('/shop')
+        redirection = self.checkout_redirection(order)
+        if redirection:
+            return redirection
 
-        # [REF] shop/confirm_order
+        # part from shop/confirm_order
         order.onchange_partner_shipping_id()
         order.order_line._compute_tax_id()
-        if not request.session.get('sale_last_order_id'):
-            print 'no sale last order, setting it'
-            request.session['sale_last_order_id'] = order.id
+        request.session['sale_last_order_id'] = order.id
         extra_step = request.env.ref('website_sale.extra_info_option')
+
         # TODO: HOW TO HANDLE THIS CASE?
         if extra_step.active:
             # TODO CONTROLLER /shop/extra_info NEEDS TO BE REWRITTEN?
             return request.redirect("/shop/extra_info")
 
-        # if transaction pending / done: redirect to confirmation
-        tx = request.env.context.get('website_sale_transaction')
-        if tx and tx.state != 'draft':
-            return request.redirect('/shop/payment/confirmation/%s' % order.id)
-
-        # [REF] /shop/payment
+        # part from /shop/payment
         shipping_partner_id = False
         if order:
             if order.partner_shipping_id:
@@ -245,7 +232,6 @@ class WebsiteSale(WebsiteSale):
             else:
                 shipping_partner_id = order.partner_invoice_id.id
 
-        # [REF] /shop/payment
         # TODO: ADAPT BELOW PART FROM THE ORIGINAL CONTROLLER
         values = {
             'website_sale_order': order
