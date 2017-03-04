@@ -7,7 +7,7 @@ Provides an All-In-One Checkout for Your Odoo Customer
 
 The One Step Checkout brings different options:
 
-.. image:: website/website_sale_one_step_checkout/static/description/settings.png
+.. image:: https://github.com/blooparksystems/website/blob/10.0-wip-website_sale_osc/website_sale_one_step_checkout/static/description/settings.png
 
 One Step Checkout combines all Odoo Checkout steps into one and removes all unnecessary fields and
 questions. Never before has check- out been easier and faster!
