@@ -3,7 +3,7 @@ One Step Checkout
 
 Provides an All-In-One Checkout for Your Odoo Customer
 
-.. image:: website/website_sale_one_step_checkout/static/description/osc.png
+.. image:: https://github.com/blooparksystems/website/blob/10.0-wip-website_sale_osc/website_sale_one_step_checkout/static/description/osc.png
 
 The One Step Checkout brings different options:
 
