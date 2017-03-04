@@ -59,8 +59,6 @@ odoo.define("website_sale_one_step_checkout", function (require) {
   }
 
   function startTransaction(acquirer_id){
-     // TODO: WHAT HAPPENS TO THIS?
-      // form.off('submit');
       ajax.jsonRpc('/shop/payment/transaction/' + acquirer_id, 'call', {}).then(function (data) {
           $(data).appendTo('body').submit();
       });
@@ -244,18 +242,23 @@ odoo.define("website_sale_one_step_checkout", function (require) {
           .then(function (result) {
               if(result.success){
                   // proceed to payment transaction
-                  ajax.jsonRpc('/shop/checkout/validate_checkout/', 'call', {});
-                  return result.success;
+                  ajax.jsonRpc('/shop/checkout/proceed_payment/', 'call', {});
+                  return true;
               } else{
                   return false;
                   // do nothing, address modal in edit mode
-                  // is open at this point
+                  // will be opened instead
               }
           })
               .then( function (result){
                   if(result){
+                      var $form = $(ev.currentTarget).parents('form');
                       // TODO WHAT HAPPENS IF USER MESSES WITH THE ACQUIRER_ID
                       var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
+                      if (! acquirer_id ){
+                          return false;
+                      }
+                      $form.off('submit')
                       startTransaction(acquirer_id);
                   }
               });

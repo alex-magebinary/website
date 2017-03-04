@@ -68,6 +68,8 @@ class WebsiteSale(WebsiteSale):
                         'partner_id':order.partner_id.id
                     }
 
+            request.session['sale_last_order_id'] = order.id
+
             return {
                 'success':True
                 }
@@ -197,10 +199,9 @@ class WebsiteSale(WebsiteSale):
         }
 
 
-    @http.route(['/shop/checkout/validate_checkout/'], type='json', auth='public', website=True,
+    @http.route(['/shop/checkout/proceed_payment/'], type='json', auth='public', website=True,
                 multilang=True)
-    def validate_checkout(self, **post):
-        """Address controller."""
+    def proceed_payment(self, **post):
         # must have a draft sale order with lines at this point, otherwise redirect to shop
         SaleOrder = request.env['sale.order']
         order = request.website.sale_get_order()
@@ -212,7 +213,7 @@ class WebsiteSale(WebsiteSale):
         # part from shop/confirm_order
         order.onchange_partner_shipping_id()
         order.order_line._compute_tax_id()
-        request.session['sale_last_order_id'] = order.id
+
         extra_step = request.env.ref('website_sale.extra_info_option')
 
         # TODO: HOW TO HANDLE THIS CASE?
@@ -236,26 +237,6 @@ class WebsiteSale(WebsiteSale):
         values.update(SaleOrder._get_website_data(order))
 
         # TODO TAKE CARE OF ERRORS
-
-
-    # TODO: is this part necessary?
-    @http.route()
-    def cart(self, **post):
-        """If only one active delivery carrier exists apply this delivery to sale order."""
-        response_object = super(WebsiteSale, self).cart(**post)
-        values = response_object.qcontext
-        dc_ids = request.env['delivery.carrier'].sudo().search(
-            [('active', '=', True), ('website_published', '=', True)])
-        change_delivery = True
-        if dc_ids and len(dc_ids) == 1:
-            for line in values['website_sale_order'].order_line:
-                if line.is_delivery:
-                    change_delivery = False
-                    break
-            if change_delivery:
-                WebsiteSaleOneStepCheckoutDelivery.do_change_delivery(values['website_sale_order'], dc_ids[0])
-
-        return request.render(response_object.template, values)
 
 
     @http.route(['/page/terms_and_conditions/'], type='http', auth="public",
