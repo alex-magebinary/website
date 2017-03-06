@@ -103,6 +103,10 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
                   $('#address-modal .modal-header h4').html(data.title);
                   $('#address-modal .modal-body').html(result.template);
+
+                  // Display states if existent for selected country, e.g. US
+                  $("select[name='country_id']").change();
+
               }
           });
   }
