@@ -237,6 +237,8 @@ class WebsiteSale(WebsiteSale):
         values.update(SaleOrder._get_website_data(order))
 
         # TODO TAKE CARE OF ERRORS
+        if values['errors']:
+            raise NotImplementedError('action must be defined!')
 
 
     @http.route(['/page/terms_and_conditions/'], type='http', auth="public",
