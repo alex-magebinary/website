@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 8.0\n"
+"Project-Id-Version: Odoo Server 10.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-05-11 14:28+0000\n"
-"PO-Revision-Date: 2015-05-11 14:28+0000\n"
+"POT-Creation-Date: 2017-03-06 13:47+0000\n"
+"PO-Revision-Date: 2017-03-06 13:47+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -15,243 +15,247 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "-- Create a new address --"
-msgstr "-- Neue Adresse anlegen --"
+#. module: payment
+#: model:payment.acquirer,pre_msg:payment.payment_acquirer_transfer
+msgid "Transfer information will be provided after choosing the payment method."
+msgstr "Überweisungsdaten werden nach der Wahl einer Zahlungsmethode bereitgestellt."
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Billing Information"
-msgstr "Persönliche Informationen"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "(processing fees apply)"
+msgstr "(Bearbeitungsgebühren)"
 
 #. module: website_sale_one_step_checkout
-#: view:website.config.settings:website_sale_one_step_checkout.view_website_config_settings_bd_inherit
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.update_displayed_shippings
+msgid "<i class=\"fa fa-plus-square\" aria-hidden=\"true\"/> Add an address"
+msgstr "<i class=\"fa fa-plus-square\" aria-hidden=\"true\"/> Adresse hinzufügen"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "<span class=\"fa fa-2x fa-credit-card\"/>\n"
+"                                                Saved Cards"
+msgstr "<span class=\"fa fa-2x fa-credit-card\"/>\n"
+"                                                Kredikarte speichern"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "<span class=\"fa fa-arrow-right\"/>\n"
+"                                        change"
+msgstr "<span class=\"fa fa-arrow-right\"/>\n"
+"                                        change"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "<span class=\"js_radio fa fa-circle-o\"/>&amp;nbsp;"
+msgstr "<span class=\"js_radio fa fa-circle-o\"/>&amp;nbsp;"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
+msgid "<span>Confirm </span><span class=\"fa fa-long-arrow-right\"/>"
+msgstr "<span>Bestätigen </span><span class=\"fa fa-long-arrow-right\"/>"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
+msgid "Address"
+msgstr "Adresse"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
+msgid "Billing Address"
+msgstr "Lieferadresse"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
+msgid "Shipping Address"
+msgstr "Lieferanschrift"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_terms
+msgid "By using the Websitebuilder.\n"
+"										You find the Terms of conditions page by using the link in\n"
+"										the footer or click on this picture."
+msgstr "Benutzen Sie den Websitebuilder.\n"
+"										Sie finden die Allgemeinen Geschäftsbedingungen\n"
+"										im Footer oder durch Klicken auf das Bild."
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.view_website_config_settings_bd_inherit
 msgid "Checkout"
 msgstr "Checkout"
 
 #. module: website_sale_one_step_checkout
-#: field:website.config.settings,checkout_country_ids:0
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_checkout_country_ids
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_config_settings_checkout_country_ids
 msgid "Checkout Countries"
 msgstr "Checkout Länder"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "City"
-msgstr "Ort"
+msgstr "Stadt"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Close"
 msgstr "Schließen"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale.cart
-#: view:website:website_sale.confirmation
-msgid "Confirmation"
-msgstr "Bestätigung"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
+msgid "Company Name"
+msgstr "Unternehmensname"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "Confirm Order <span class=\"fa fa-long-arrow-right\"/>"
+msgstr "Auftrag bestätigen<span class=\"fa fa-long-arrow-right\"/>"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "Country"
 msgstr "Land"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "Country..."
 msgstr "Bitte Land auswählen..."
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Delivery Method"
-msgstr "Versand Methode"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_terms
+msgid "Edit your Terms And Conditions"
+msgstr "Editieren Sie Ihre AGB´s"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "Email"
 msgstr "E-Mail"
 
 #. module: website_sale_one_step_checkout
-#: model:res.groups,name:website_sale_one_step_checkout.group_terms_conditions
+#: model:res.groups,name:website_sale_one_step_checkout.group_website_sale_terms_conditions
 msgid "Enable Terms and Conditions"
-msgstr "AGB nutzen"
+msgstr "Enable Terms and Conditions"
 
 #. module: website_sale_one_step_checkout
-#: help:website.config.settings,group_terms_conditions:0
+#: model:ir.model.fields,help:website_sale_one_step_checkout.field_website_config_settings_group_website_sale_terms_conditions
 msgid "Enable Terms and Conditions on the Checkout"
-msgstr "AGB im Checkout nutzen"
+msgstr "AGB im Checkout aktivieren"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "I've accepted the"
 msgstr "Ich akzeptiere die"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Informationen"
 msgstr "Informationen"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Name (Shipping)"
-msgstr "Name (Versand)"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
+msgid "Name"
+msgstr "Name"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "No."
-msgstr "Nr."
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_terms
+msgid "Odoo CMS - a big picture"
+msgstr "Odoo CMS - a big picture"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-#: code:addons/website_sale_one_step_checkout/controllers/main.py:0
-#, python-format
-msgid "Order Now"
-msgstr "Jetzt Bestellen"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "Pay Now <span class=\"fa fa-long-arrow-right\"/>"
+msgstr "Jetzt Bezahlen<span class=\"fa fa-long-arrow-right\"/>"
 
 #. module: website_sale_one_step_checkout
-#: model:ir.model,name:website_sale_one_step_checkout.model_res_partner
-msgid "Partner"
-msgstr "Partner"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale.cart
-#: view:website:website_sale.confirmation
-msgid "Payment"
-msgstr "Zahlung"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Payment Method"
-msgstr "Bezahl Methode"
+msgstr "Zahlungsmethode"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "Phone"
 msgstr "Telefon"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Price"
-msgstr "Verkaufspreis"
+msgstr "Preis"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Product"
 msgstr "Produkt"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Quantity"
-msgstr "Menge"
+msgstr "Anzahl"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale.cart
-#: view:website:website_sale.confirmation
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Review Order"
 msgstr "Auftrag überprüfen"
 
 #. module: website_sale_one_step_checkout
-#: model:ir.model,name:website_sale_one_step_checkout.model_sale_order
-msgid "Sales Order"
-msgstr "Verkaufsauftrag"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "Save my payment data"
+msgstr "Speichere meine Zahlungsdaten"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Ship to the same address"
-msgstr "An dieselbe Adresse"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Shipping"
-msgstr "Versand"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale.cart
-#: view:website:website_sale.confirmation
-msgid "Shipping\n"
-"							& Billing"
-msgstr "Versand\n"
-"							& Rechnung"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Shipping Information"
-msgstr "Lieferadresse"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Shop - Checkout"
-msgstr "Shop-Abmelden"
+msgstr "Shop - Kasse"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
 msgid "Sign in"
 msgstr "Anmelden"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "State / Province"
 msgstr "Bundesland / Region"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "State / Province..."
 msgstr "Bundesland / Region"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Street"
-msgstr "Straße"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
+msgid "Street <span class=\"hidden-xs\"> and Number</span>"
+msgstr "Straße<span class=\"hidden-xs\"> und Nummer</span>"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale.total
-msgid "Subtotal of all products"
-msgstr "Summer aller Produckte"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
+msgid "TIN / VAT"
+msgstr "TIN / VAT"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale.total
-msgid "Subtotal:"
-msgstr "Nettobetrag:"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale.total
-msgid "Tax included"
-msgstr "Steuern inclusive"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website.layout
-msgid "Terms & Conditions"
-msgstr "Allgemeine Geschäftsbedingungen"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Terms & Condtions"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
+msgid "Terms &amp;\n"
+"                                                Conditions"
 msgstr "Allgemeinen Geschäftsbedingungen"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-#: field:website.config.settings,group_terms_conditions:0
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.footer_terms
+msgid "Terms &amp; Conditions"
+msgstr "Allgemeine Geschäftsbedingungen"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_config_settings_group_website_sale_terms_conditions
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
 msgid "Terms and Conditions"
 msgstr "Allgemeine Geschäftsbedingungen"
 
 #. module: website_sale_one_step_checkout
-#: help:sale.order,amount_subtotal:0
-msgid "The amount without anything."
-msgstr "Der Preis ohne alles."
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale.total
-msgid "Total:"
-msgstr "Summe:"
-
-#. module: website_sale_one_step_checkout
-#: field:website.config.settings,use_all_checkout_countries:0
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_config_settings_use_all_checkout_countries
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_use_all_checkout_countries
 msgid "Use All Countries in Checkout"
 msgstr "Alle Länder im Checkout freigeben"
 
 #. module: website_sale_one_step_checkout
-#: field:website.config.settings,use_osc:0
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_config_settings_use_osc
+#: model:ir.model.fields,field_description:website_sale_one_step_checkout.field_website_use_osc
 msgid "Use OSC"
 msgstr "Benutze OSC"
 
@@ -261,50 +265,64 @@ msgid "Website"
 msgstr "Webseite"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Your Company"
-msgstr "Firma"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Your Name"
-msgstr "Ihr Name"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Your Order"
-msgstr "Ihr Auftrag"
-
-#. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "Zip / Postal Code"
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
+msgid "Zip Code"
 msgstr "PLZ"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "change"
-msgstr "ändern"
+#. openerp-web
+#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:25
+#, python-format
+msgid "click on add to cart"
+msgstr 'Auf "In den Warenkorb" klicken'
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
+#. openerp-web
+#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:57
+#, python-format
+msgid "finish"
+msgstr "Beenden"
+
+#. module: website_sale_one_step_checkout
+#. openerp-web
+#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:30
+#, python-format
+msgid "go to checkout"
+msgstr "weiter zur Kasse"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
 msgid "or"
 msgstr "oder"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout
-msgid "select..."
-msgstr "... auswählen"
+#: model:ir.model,name:website_sale_one_step_checkout.model_sale_config_settings
+msgid "sale.config.settings"
+msgstr "sale.config.settings"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout_terms
-msgid "By using the Websitebuilder.\n"
-"										You find the Terms of conditions page by using the link in\n"
-"										the footer or click on this picture."
-msgstr "Benutzen Sie den Websitebuilder.\n"
-"										Sie finden die Allgemeinen Geschäftsbedingungen\n"
-"										im footer oder klicken sie auf das Bild."
+#. openerp-web
+#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:20
+#, python-format
+msgid "select iPad Mini"
+msgstr "iPad Mini auswählen"
 
 #. module: website_sale_one_step_checkout
-#: view:website:website_sale_one_step_checkout.checkout_terms
-msgid "Edit your Terms And Conditions"
-msgstr "Editieren Sie Ihre AGB´s"
+#. openerp-web
+#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:34
+#, python-format
+msgid "test with input error"
+msgstr "test with input error"
+
+#. module: website_sale_one_step_checkout
+#. openerp-web
+#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:41
+#, python-format
+msgid "test without input error"
+msgstr "test without input error"
+
+#. module: website_sale_one_step_checkout
+#: model:ir.model,name:website_sale_one_step_checkout.model_website_config_settings
+msgid "website.config.settings"
+msgstr "website.config.settings"
+

@@ -6,8 +6,11 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
     var ajax = require('web.ajax');
     var base = require('web_editor.base');
+    var core = require("web.core");
+
+    var _t = core._t;
     //Todo remove?
-    var website = require('website.website');
+    // var website = require('website.website');
     
   function getPostAddressFields(elms, data) {
         elms.each(function(index) {
@@ -86,7 +89,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
       var title = 'Billing Address';
 
       var data = {
-          'title':title,
+          'title':_t(title),
       };
 
       renderModal(data);
@@ -100,7 +103,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
           .then(function(result) {
               $('#address-modal').modal('show');
               if(result.success) {
-
+                  console.log('inserting title');
                   $('#address-modal .modal-header h4').html(data.title);
                   $('#address-modal .modal-body').html(result.template);
 
@@ -163,7 +166,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         }
 
         var data = {
-                'title':title,
+                'title': _t(title),
                 'partner_id':partner_id,
             };
 
@@ -181,7 +184,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
 
         var data = {
-            'title':title,
+            'title': _t(title),
             'partner_id':partner_id,
         };
 
@@ -197,7 +200,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
         var title = 'Shipping Address';
         var data = {
-            'title':title,
+            'title':_t(title),
         };
 
         renderModal(data);
