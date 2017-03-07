@@ -242,7 +242,7 @@
         </template>
 
         <template id="checkout_new_address_modal" name="Add New Address">
-            <div id="osc_billing">
+            <div id="osc-modal-form">
                 <t t-if="error" t-foreach="error.get('error_message', [])" t-as="err">
                     <h4 class="text-danger" t-esc="err" />
                 </t>
@@ -382,7 +382,8 @@
             <t t-if="not only_services and order.partner_id.id != request.website.user_id.sudo().partner_id.id">
                 <div class="row">
                     <div class="col-md-12">
-                        <h3 class="page-header mt16">Shipping Address
+                        <h3 class="page-header mt16">
+                            Shipping Address
                         </h3>
                     </div>
                 </div>
@@ -411,43 +412,43 @@
             <div class="clearfix" />
         </template>
 
-        <template id="update_displayed_shippings">
-            <div class="col-md-12">
-                <div class="row mt8">
-                    <div id="add-shipping-address" class="col-sm-12 col-md-12 one_kanban">
-                            <a class='a-submit btn btn-default mb16 btn-block'>
-                                <i class="fa fa-plus-square" aria-hidden="true"></i> Add an address
-                            </a>
-                    </div>
-                    <t t-foreach="shippings" t-as="ship">
-                        <div class="col-sm-12 col-md-12 one_kanban">
-                            <t t-call="website_sale.address_kanban">
-                                <t t-set='contact' t-value="ship"/>
-                                <t t-set='selected' t-value="order.partner_shipping_id==ship"/>
-                                <t t-set='readonly' t-value="bool(len(shippings)==1)"/>
-                                <t t-set='edit_billing' t-value="bool(ship==order.partner_id)"/>
-                            </t>
-                        </div>
-                    </t>
-                </div>
-            </div>
-        </template>
+        <!--<template id="update_displayed_shippings">-->
+            <!--<div class="col-md-12">-->
+                <!--<div class="row mt8">-->
+                    <!--<div id="add-shipping-address" class="col-sm-12 col-md-12 one_kanban">-->
+                            <!--<a class='a-submit btn btn-default mb16 btn-block'>-->
+                                <!--<i class="fa fa-plus-square" aria-hidden="true"></i> Add an address-->
+                            <!--</a>-->
+                    <!--</div>-->
+                    <!--<t t-foreach="shippings" t-as="ship">-->
+                        <!--<div class="col-sm-12 col-md-12 one_kanban">-->
+                            <!--<t t-call="website_sale.address_kanban">-->
+                                <!--<t t-set='contact' t-value="ship"/>-->
+                                <!--<t t-set='selected' t-value="order.partner_shipping_id==ship"/>-->
+                                <!--<t t-set='readonly' t-value="bool(len(shippings)==1)"/>-->
+                                <!--<t t-set='edit_billing' t-value="bool(ship==order.partner_id)"/>-->
+                            <!--</t>-->
+                        <!--</div>-->
+                    <!--</t>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</template>-->
 
-        <template id="update_displayed_billings">
-            <div id="osc_billing" class="all_billing js-billing-address">
-                <div class="col-md-12">
-                    <div class="row mt8">
-                        <div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">
-                            <t t-call="website_sale.address_kanban">
-                                <t t-set='contact' t-value="order.partner_id"/>
-                                <t t-set='selected' t-value="1"/>
-                                <t t-set='readonly' t-value="1"/>
-                            </t>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </template>
+        <!--<template id="update_displayed_billings">-->
+            <!--<div id="osc_billing" class="all_billing js-billing-address">-->
+                <!--<div class="col-md-12">-->
+                    <!--<div class="row mt8">-->
+                        <!--<div id="add-billing-address" class="col-sm-12 col-md-12 one_kanban">-->
+                            <!--<t t-call="website_sale.address_kanban">-->
+                                <!--<t t-set='contact' t-value="order.partner_id"/>-->
+                                <!--<t t-set='selected' t-value="1"/>-->
+                                <!--<t t-set='readonly' t-value="1"/>-->
+                            <!--</t>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</template>-->
 
         <template id="update-public-user-address">
 
@@ -465,7 +466,7 @@
 									<h1 class="text-center">Edit your Terms And Conditions</h1>
 									<h4 class="text-muted">By using the Websitebuilder.
 										You find the Terms of conditions page by using the link in
-										the footer or click on this picture.
+										the Footer or by clicking on this picture.
 									</h4>
 								</div>
 							</div>

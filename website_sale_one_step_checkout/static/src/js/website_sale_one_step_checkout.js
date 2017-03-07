@@ -15,10 +15,10 @@ odoo.define("website_sale_one_step_checkout", function (require) {
   };
 
   function validateModalAddress(){
-      var billingElems = $('#osc_billing input, #osc_billing select')
+      var formElems = $('#osc-modal-form input, #osc-modal-form select')
           , data = {};
 
-      data = getPostAddressFields(billingElems, data);
+      data = getPostAddressFields(formElems, data);
 
       // FOR VALIDATION WE NEED submitted
       data.submitted = true;
@@ -31,7 +31,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
                   $('#js_confirm_address').attr("disabled", false);
 
                   // Update frontend address view
-                  $('#col-1').html(result.template)
+                  $('#col-1').html(result.template);
 
                   // Re-enable JS event listeners
                   $('.js-billing-address .js_edit_address').on('click', editBilling);
