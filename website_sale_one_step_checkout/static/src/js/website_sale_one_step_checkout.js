@@ -249,27 +249,24 @@ odoo.define("website_sale_one_step_checkout", function (require) {
           .then(function (result) {
               if(result.success){
                   // proceed to payment transaction
-                  ajax.jsonRpc('/shop/checkout/proceed_payment/', 'call', {});
+                  ajax.jsonRpc('/shop/checkout/proceed_payment/', 'call', {})
+                      .then(function (){
+                          var $form = $(ev.currentTarget).parents('form');
+                          // TODO WHAT HAPPENS IF USER MESSES WITH THE ACQUIRER_ID
+                          var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
+                          if (! acquirer_id ){
+                              return false;
+                          }
+                          $form.off('submit');
+                          startTransaction(acquirer_id);
+                      });
                   return true;
               } else{
                   return false;
                   // do nothing, address modal in edit mode
                   // will be opened instead
               }
-          })
-              .then( function (result){
-                  if(result){
-                      var $form = $(ev.currentTarget).parents('form');
-                      // TODO WHAT HAPPENS IF USER MESSES WITH THE ACQUIRER_ID
-                      var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
-                      if (! acquirer_id ){
-                          return false;
-                      }
-                      $form.off('submit')
-                      startTransaction(acquirer_id);
-                  }
-              });
-
+          });
 
           return false;
       });

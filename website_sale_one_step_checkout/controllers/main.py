@@ -55,29 +55,25 @@ class WebsiteSale(WebsiteSale):
     def validate_address_form(self):
         order = request.website.sale_get_order()
 
+        result = {
+            'success': False
+        }
+
         if not order:
-            return {
-                'success': False
-            }
+            return result
 
         if order.partner_id.id != request.website.user_id.sudo().partner_id.id:
             for f in self._get_mandatory_billing_fields():
                 if not order.partner_id[f]:
-                    return {
-                        'success':False,
-                        'partner_id':order.partner_id.id
-                    }
+                    result['partner_id'] = order.partner_id.id
+                    return result
 
-            request.session['sale_last_order_id'] = order.id
+            result['success'] = True
 
-            return {
-                'success':True
-                }
+            return result
 
         elif order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-            return {
-                'success': False
-            }
+            return result
 
 
     # TODO CHANGE NAME AND URL?
@@ -213,7 +209,7 @@ class WebsiteSale(WebsiteSale):
         # part from shop/confirm_order
         order.onchange_partner_shipping_id()
         order.order_line._compute_tax_id()
-
+        request.session['sale_last_order_id'] = order.id
         extra_step = request.env.ref('website_sale.extra_info_option')
 
         # TODO: HOW TO HANDLE THIS CASE?
