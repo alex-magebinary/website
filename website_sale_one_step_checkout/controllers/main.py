@@ -5,7 +5,7 @@
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.addons.website_sale_one_step_checkout_delivery.controllers.main import WebsiteSaleOneStepCheckoutDelivery
 from odoo.http import request, redirect_with_hash
-from odoo import http
+from odoo import http, _
 from werkzeug.exceptions import Forbidden
 
 
@@ -191,7 +191,8 @@ class WebsiteSale(WebsiteSale):
         return {
             'success': True,
             'template': template,
-            'type': mode[1]
+            'type': mode[1],
+            'modal_title': _(kw.get('modal_title', ''))
         }
 
 

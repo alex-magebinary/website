@@ -6,12 +6,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
     var ajax = require('web.ajax');
     var base = require('web_editor.base');
-    var core = require("web.core");
 
-    var _t = core._t;
-    //Todo remove?
-    // var website = require('website.website');
-    
   function getPostAddressFields(elms, data) {
         elms.each(function(index) {
             data[$(this).attr('name')] = $(this).val();
@@ -86,10 +81,9 @@ odoo.define("website_sale_one_step_checkout", function (require) {
       // fields will be still highlighted red.
       removeErrors();
 
-      var title = 'Billing Address';
 
       var data = {
-          'title':_t(title),
+          'modal_title':'Billing Address',
       };
 
       renderModal(data);
@@ -103,8 +97,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
           .then(function(result) {
               $('#address-modal').modal('show');
               if(result.success) {
-                  console.log('inserting title');
-                  $('#address-modal .modal-header h4').html(data.title);
+                  $('#address-modal .modal-header h4').html(result.modal_title);
                   $('#address-modal .modal-body').html(result.template);
 
                   // Display states if existent for selected country, e.g. US
@@ -149,7 +142,6 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         // fields will be still highlighted red.
         removeErrors();
 
-        var title = 'Billing Address';
         var partner_id;
 
         if(result.partner_id) {
@@ -166,7 +158,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         }
 
         var data = {
-                'title': _t(title),
+                'modal_title': 'Billing Address',
                 'partner_id':partner_id,
             };
 
@@ -180,11 +172,10 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         // fields will be still highlighted red.
         $('.oe_website_sale_osc .has-error').removeClass('has-error');
 
-        var title = 'Shipping Address';
         var partner_id = $(this).siblings('form').find('input[name=partner_id]').val();
 
         var data = {
-            'title': _t(title),
+            'modal_title': 'Shipping Address',
             'partner_id':partner_id,
         };
 
@@ -198,9 +189,8 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         // fields will be still highlighted red.
         $('.oe_website_sale_osc .has-error').removeClass('has-error');
 
-        var title = 'Shipping Address';
         var data = {
-            'title':_t(title),
+            'modal_title':'Shipping Address',
         };
 
         renderModal(data);
@@ -212,7 +202,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
       validateAddressForm();
 
       // activate listener
-      changeShipping()
+      changeShipping();
 
       // when choosing an acquirer, display its order now button
       var $payment = $('#payment_method');
@@ -260,7 +250,6 @@ odoo.define("website_sale_one_step_checkout", function (require) {
                           $form.off('submit');
                           startTransaction(acquirer_id);
                       });
-                  return true;
               } else{
                   return false;
                   // do nothing, address modal in edit mode
