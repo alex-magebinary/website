@@ -20,7 +20,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
       data = getPostAddressFields(formElems, data);
 
-      // FOR VALIDATION WE NEED submitted
+      // FOR VALIDATION WE NEED `submitted`
       data.submitted = true;
 
       $('.oe_website_sale_osc .has-error').removeClass('has-error');
@@ -102,7 +102,6 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
                   // Display states if existent for selected country, e.g. US
                   $("select[name='country_id']").change();
-
               }
           });
   }
@@ -197,11 +196,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
   }
 
   base.dom_ready.done(function () {
-      // Check whether all mandatory billing fields
-      // contain data. If not, open address modal
-      validateAddressForm();
-
-      // activate listener
+      // activate event listener
       changeShipping();
 
       // when choosing an acquirer, display its order now button
@@ -256,7 +251,6 @@ odoo.define("website_sale_one_step_checkout", function (require) {
                   // will be opened instead
               }
           });
-
           return false;
       });
 
@@ -295,16 +289,12 @@ odoo.define("website_sale_one_step_checkout", function (require) {
       $('#address-modal').on('click', '#js_confirm_address', function(ev){
           ev.preventDefault();
           ev.stopPropagation();
-              // Upon confirmation, validate data.
-              validateModalAddress();
-
-              return false;
+          // Upon confirmation, validate data.
+          validateModalAddress();
+          return false;
       });
 
-
       // END DOM
-
-
   });
 
 });
