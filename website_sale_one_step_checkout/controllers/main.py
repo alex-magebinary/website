@@ -50,7 +50,6 @@ class WebsiteSale(WebsiteSale):
         return request.render(
             'website_sale_one_step_checkout.osc_onestepcheckout', values)
 
-
     @http.route(['/shop/checkout/validate_address_form'], type='json', auth='public', website=True, multilang=True)
     def validate_address_form(self):
         order = request.website.sale_get_order()
@@ -75,10 +74,9 @@ class WebsiteSale(WebsiteSale):
         elif order.partner_id.id == request.website.user_id.sudo().partner_id.id:
             return result
 
-
     # TODO CHANGE NAME AND URL?
     @http.route(['/shop/checkout/render_address'], type='json', auth='public', website=True, multilang=True)
-    def renderAddress(self, **kw):
+    def render_address(self, **kw):
         Partner = request.env['res.partner'].with_context(show_address=1).sudo()
         order = request.website.sale_get_order(force_create=1)
         def_country_id = order.partner_id.country_id
@@ -121,7 +119,6 @@ class WebsiteSale(WebsiteSale):
                 mode = ('new', 'shipping')
             else:  # no mode - refresh without post?
                 return request.redirect('/shop/checkout')
-
 
         # IF POSTED
         if 'submitted' in kw:
@@ -195,7 +192,6 @@ class WebsiteSale(WebsiteSale):
             'modal_title': _(kw.get('modal_title', ''))
         }
 
-
     @http.route(['/shop/checkout/proceed_payment/'], type='json', auth='public', website=True,
                 multilang=True)
     def proceed_payment(self, **post):
@@ -236,7 +232,6 @@ class WebsiteSale(WebsiteSale):
         # TODO TAKE CARE OF ERRORS
         if values['errors']:
             raise NotImplementedError('action must be defined!')
-
 
     @http.route(['/page/terms_and_conditions/'], type='http', auth="public",
                 website=True, multilang=True)
