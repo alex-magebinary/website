@@ -62,13 +62,15 @@ msgstr "Adresse"
 
 #. module: website_sale_one_step_checkout
 #: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
+#: code:addons_external/website_sale_one_step_checkout/controllers/main.py:0
 msgid "Billing Address"
-msgstr "Lieferadresse"
+msgstr "Rechnungsadresse"
 
 #. module: website_sale_one_step_checkout
 #: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
+#: code:addons/website_sale_one_step_checkout/controllers/main.py:0
 msgid "Shipping Address"
-msgstr "Lieferanschrift"
+msgstr "Lieferadresse"
 
 #. module: website_sale_one_step_checkout
 #: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_terms
@@ -93,7 +95,7 @@ msgstr "Checkout Länder"
 #. module: website_sale_one_step_checkout
 #: model:ir.ui.view,arch_db:website_sale_one_step_checkout.checkout_new_address_modal
 msgid "City"
-msgstr "Stadt"
+msgstr "Ort"
 
 #. module: website_sale_one_step_checkout
 #: model:ir.ui.view,arch_db:website_sale_one_step_checkout.osc_onestepcheckout
@@ -270,27 +272,6 @@ msgid "Zip Code"
 msgstr "PLZ"
 
 #. module: website_sale_one_step_checkout
-#. openerp-web
-#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:25
-#, python-format
-msgid "click on add to cart"
-msgstr 'Auf "In den Warenkorb" klicken'
-
-#. module: website_sale_one_step_checkout
-#. openerp-web
-#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:57
-#, python-format
-msgid "finish"
-msgstr "Beenden"
-
-#. module: website_sale_one_step_checkout
-#. openerp-web
-#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:30
-#, python-format
-msgid "go to checkout"
-msgstr "weiter zur Kasse"
-
-#. module: website_sale_one_step_checkout
 #: model:ir.ui.view,arch_db:website_sale_one_step_checkout.address
 msgid "or"
 msgstr "oder"
@@ -299,27 +280,6 @@ msgstr "oder"
 #: model:ir.model,name:website_sale_one_step_checkout.model_sale_config_settings
 msgid "sale.config.settings"
 msgstr "sale.config.settings"
-
-#. module: website_sale_one_step_checkout
-#. openerp-web
-#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:20
-#, python-format
-msgid "select iPad Mini"
-msgstr "iPad Mini auswählen"
-
-#. module: website_sale_one_step_checkout
-#. openerp-web
-#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:34
-#, python-format
-msgid "test with input error"
-msgstr "test with input error"
-
-#. module: website_sale_one_step_checkout
-#. openerp-web
-#: code:addons/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js:41
-#, python-format
-msgid "test without input error"
-msgstr "test without input error"
 
 #. module: website_sale_one_step_checkout
 #: model:ir.model,name:website_sale_one_step_checkout.model_website_config_settings

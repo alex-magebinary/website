@@ -109,8 +109,6 @@ class SaleConfiguration(models.TransientModel):
         public_user = self.env.ref('base.public_user')
 
         if public_user:
-            print "osc > models > sale.py > SaleConfiguration > if public_user > public_user.write({'groups_id': setting})"
-            print public_user.write({'groups_id': setting})
             public_user.write({'groups_id': setting})
 
         return super(SaleConfiguration, self).write(vals)
