@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
-# © 2015 bloopark systems (<http://bloopark.de>)
-# © 2016 Antiun Ingeniería S.L. - Jairo Llopis
+# © 2017 bloopark systems (<http://bloopark.de>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 from odoo.addons.website_sale.controllers.main import WebsiteSale
-from odoo.addons.website_sale_one_step_checkout_delivery.controllers.main import WebsiteSaleOneStepCheckoutDelivery
-from odoo.http import request, redirect_with_hash
+from odoo.http import request
 from odoo import http, _
 from werkzeug.exceptions import Forbidden
 
 
 class WebsiteSale(WebsiteSale):
-    @http.route(['/shop/checkout'], type='http', auth='public', website=True, multilang=True)
+    @http.route(['/shop/checkout'], type='http', auth='public',
+                website=True, multilang=True)
     def checkout(self, **post):
         """Use one step checkout if enabled. Fall back to normal otherwise."""
         # if onestepcheckout is deactivated use the normal checkout
         if not request.website.use_osc:
             return super(WebsiteSale, self).checkout(**post)
 
-        # must have a draft sale order with lines at this point, otherwise reset
         order = request.website.sale_get_order()
 
         redirection = self.checkout_redirection(order)
@@ -26,17 +24,6 @@ class WebsiteSale(WebsiteSale):
 
         values = self.checkout_values(**post)
 
-        partner = request.env['res.users'].sudo().browse(request.uid).partner_id
-
-        # get countries dependent on website settings
-        countries_domain = []
-        if not request.website.use_all_checkout_countries:
-            countries_domain = [('id', 'in', request.website.checkout_country_ids.ids)]
-
-        values['countries'] = request.env['res.country'].search(countries_domain)
-
-        # To avoid access problems when rendering
-        # the address template for public user
         if post.get('public_user'):
             return values
 
@@ -50,10 +37,10 @@ class WebsiteSale(WebsiteSale):
         return request.render(
             'website_sale_one_step_checkout.osc_onestepcheckout', values)
 
-    @http.route(['/shop/checkout/validate_address_form'], type='json', auth='public', website=True, multilang=True)
+    @http.route(['/shop/checkout/validate_address_form'], type='json',
+                auth='public', website=True, multilang=True)
     def validate_address_form(self):
         order = request.website.sale_get_order()
-
         result = {
             'success': False
         }
@@ -68,21 +55,28 @@ class WebsiteSale(WebsiteSale):
                     return result
 
             result['success'] = True
-
             return result
 
         elif order.partner_id.id == request.website.user_id.sudo().partner_id.id:
             return result
 
+    @http.route()
+    def address(self, **post):
+        if not request.website.use_osc:
+            return super(WebsiteSale, self).checkout(**post)
+        else:
+            return request.redirect('/shop')
+
     # TODO CHANGE NAME AND URL?
-    @http.route(['/shop/checkout/render_address'], type='json', auth='public', website=True, multilang=True)
+    @http.route(['/shop/checkout/render_address'], type='json', auth='public',
+                website=True, multilang=True)
     def render_address(self, **kw):
         Partner = request.env['res.partner'].with_context(show_address=1).sudo()
         order = request.website.sale_get_order(force_create=1)
         def_country_id = order.partner_id.country_id
         values, errors = {}, {}
 
-        mode = (False,False)
+        mode = (False, False)
         partner_id = int(kw.get('partner_id', -1))
         shippings = []
 
@@ -92,12 +86,11 @@ class WebsiteSale(WebsiteSale):
 
         # IF PUBLIC ORDER
         if order.partner_id.id == request.website.user_id.sudo().partner_id.id:
-
             mode = ('new', 'billing')
-
             country_code = request.session['geoip'].get('country_code')
             if country_code:
-                def_country_id = request.env['res.country'].search([('code', '=', country_code)], limit=1)
+                def_country_id = request.env['res.country'].search(
+                    [('code', '=', country_code)], limit=1)
             else:
                 def_country_id = request.website.user_id.sudo().country_id
         # IF ORDER LINKED TO A PARTNER
@@ -106,8 +99,10 @@ class WebsiteSale(WebsiteSale):
                 if partner_id == order.partner_id.id:
                     mode = ('edit', 'billing')
                 else:
-                    shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)],
-                                               order='id desc')
+                    shippings = Partner.search([
+                        ('id', 'child_of',
+                         order.partner_id.commercial_partner_id.ids)],
+                        order='id desc')
                     if partner_id in shippings.mapped('id'):
                         mode = ('edit', 'shipping')
                     else:
@@ -123,13 +118,15 @@ class WebsiteSale(WebsiteSale):
         # IF POSTED
         if 'submitted' in kw:
             pre_values = self.values_preprocess(order, mode, kw)
-            errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
-            post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
+            errors, error_msg = self.checkout_form_validate(mode, kw,
+                                                            pre_values)
+            post, errors, error_msg = self.values_postprocess(order, mode,
+                                                              pre_values,
+                                                              errors,
+                                                              error_msg)
 
             if errors:
                 errors['error_message'] = error_msg
-                # [REF]
-                # HIGHLIGHT WRONG INPUT
                 return {
                     'success': False,
                     'errors': errors
@@ -142,35 +139,33 @@ class WebsiteSale(WebsiteSale):
                 elif mode[1] == 'shipping':
                     order.partner_shipping_id = partner_id
 
-                order.message_partner_ids = [(4, partner_id), (3, request.website.partner_id.id)]
-
+                order.message_partner_ids = [(4, partner_id),
+                                             (3, request.website.partner_id.id)]
                 if not shippings:
-                    shippings = Partner.search([('id', 'child_of', order.partner_id.commercial_partner_id.ids)],
-                                               order='id desc')
-
-                # [REF]
+                    shippings = Partner.search(
+                        [('id', 'child_of',
+                          order.partner_id.commercial_partner_id.ids)],
+                        order='id desc')
                 render_values = {
-                    'shippings':shippings,
-                    'order':order
+                    'shippings': shippings,
+                    'order': order
                 }
-
                 if mode[0] == 'new':
                     # New public user address
                     # To avoid access problems when rendering
                     # the address template, fetch new values
                     render_values = self.checkout(**{'public_user': True})
 
-                template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.address",
-                                                                     render_values)
-
+                template = request.env['ir.ui.view'].render_template(
+                    "website_sale_one_step_checkout.address", render_values)
                 return {
-                    'success':True,
-                    'template':template,
-                    'mode':mode
+                    'success': True,
+                    'template': template,
+                    'mode': mode
                 }
 
-
-        country = 'country_id' in values and values['country_id'] != '' and request.env['res.country'].browse(
+        country = 'country_id' in values and values['country_id'] != '' and \
+                  request.env['res.country'].browse(
             int(values['country_id']))
         country = country and country.exists() or def_country_id
         render_values = {
@@ -184,7 +179,9 @@ class WebsiteSale(WebsiteSale):
             'callback': kw.get('callback'),
         }
 
-        template = request.env['ir.ui.view'].render_template("website_sale_one_step_checkout.checkout_new_address_modal", render_values)
+        template = request.env['ir.ui.view'].render_template(
+            "website_sale_one_step_checkout.checkout_new_address_modal",
+            render_values)
         return {
             'success': True,
             'template': template,
@@ -192,10 +189,11 @@ class WebsiteSale(WebsiteSale):
             'modal_title': _(kw.get('modal_title', ''))
         }
 
-    @http.route(['/shop/checkout/proceed_payment/'], type='json', auth='public', website=True,
-                multilang=True)
+    @http.route(['/shop/checkout/proceed_payment/'], type='json',
+                auth='public', website=True, multilang=True)
     def proceed_payment(self, **post):
-        # must have a draft sale order with lines at this point, otherwise redirect to shop
+        # must have a draft sale order with lines at this point
+        #  otherwise redirect to shop
         SaleOrder = request.env['sale.order']
         order = request.website.sale_get_order()
 
@@ -209,19 +207,11 @@ class WebsiteSale(WebsiteSale):
         request.session['sale_last_order_id'] = order.id
         extra_step = request.env.ref('website_sale.extra_info_option')
 
-        # TODO: HOW TO HANDLE THIS CASE?
         if extra_step.active:
             # TODO CONTROLLER /shop/extra_info NEEDS TO BE REWRITTEN?
             return request.redirect("/shop/extra_info")
 
         # part from /shop/payment
-        shipping_partner_id = False
-        if order:
-            if order.partner_shipping_id:
-                shipping_partner_id = order.partner_shipping_id.id
-            else:
-                shipping_partner_id = order.partner_invoice_id.id
-
         # TODO: ADAPT BELOW PART FROM THE ORIGINAL CONTROLLER
         values = {
             'website_sale_order': order
@@ -232,9 +222,3 @@ class WebsiteSale(WebsiteSale):
         # TODO TAKE CARE OF ERRORS
         if values['errors']:
             raise NotImplementedError('action must be defined!')
-
-    @http.route(['/page/terms_and_conditions/'], type='http', auth="public",
-                website=True, multilang=True)
-    def checkout_terms(self, **opt):
-        """Function for terms of condition."""
-        return request.render('website_sale_one_step_checkout.checkout_terms')
