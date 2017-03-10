@@ -1,29 +1,26 @@
 # -*- coding: utf-8 -*-
+# © 2017 bloopark systems (<http://bloopark.de>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
-    'name': "website_sale_one_step_checkout_delivery",
+    'name': "One Step Checkout Delivery",
+    'category': 'Website',
 
-    'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
+    'summary': """Add Delivery Costs to One-Step-Checkout""",
 
     'description': """
-        Long description of module's purpose
-    """,
-
-    'author': "My Company",
-    'website': "http://www.yourcompany.com",
-
-    # Categories can be used to filter modules in modules listing
-    # Check https://github.com/odoo/odoo/blob/master/odoo/addons/base/module/module_data.xml
-    # for the full list
-    'category': 'Uncategorized',
-    'version': '0.1',
-
-    # any module necessary for this one to work correctly
-    'depends': ['website_sale_delivery', 'website_sale_one_step_checkout'],
-
-    # always loaded
+Delivery Costs
+==============
+""",
+    'author': "bloopark systems GmbH & Co. KG",
+    'website': "http://www.bloopark.de",
+    'license': 'AGPL-3',
+    'version': '1.0',
+    'depends': [
+        'website_sale_delivery',
+        'website_sale_one_step_checkout'],
     'data': [
         'views/templates.xml',
     ],
+    'installable': True,
+    'auto_install': False,
 }
