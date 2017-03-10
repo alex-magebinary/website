@@ -4,9 +4,7 @@
 {
     'name': "One Step Checkout Delivery",
     'category': 'Website',
-
     'summary': """Add Delivery Costs to One-Step-Checkout""",
-
     'description': """
 Delivery Costs
 ==============
