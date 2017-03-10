@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-# © 2015 bloopark systems (<http://bloopark.de>)
-# © 2016 Antiun Ingeniería S.L. - Jairo Llopis
+# © 2017 bloopark systems (<http://bloopark.de>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
     'name': 'One Step Checkout',
     'category': 'Website',
     'summary': 'Provide an All-In-One Checkout for your website e-commerce',
-    'version': '8.0.1.0.0',
-    'author': "bloopark systems GmbH & Co. KG, "
-              "Antiun Ingeniería S.L., "
-              "Odoo Community Association (OCA)",
+    'version': '1.0',
+    'author': "bloopark systems GmbH & Co. KG",
     'website': "http://www.bloopark.de",
     'license': 'AGPL-3',
     'depends': [
@@ -18,7 +15,6 @@
     ],
     'data': [
         'security/ir.model.access.csv',
-        'security/website_sale_one_step_checkout.xml',
         'views/res_config.xml',
         'views/website_sale_one_step_checkout.xml',
     ],
