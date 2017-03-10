@@ -8,7 +8,6 @@
         <script
           type="text/javascript"
           src="/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout_tour.js"/>
-
         <script
           type="text/javascript"
           src="/website_sale_one_step_checkout/static/src/js/website_sale_one_step_checkout.js"></script>
@@ -46,14 +45,12 @@
           <div class="oe_structure"/>
           <div class="container oe_website_sale oe_website_sale_osc">
             <t t-set="same_shipping" t-value="bool(order.partner_shipping_id==order.partner_id or only_services)" />
-            <!--/t[1]/t[1]/div[1]/div[1]/div[1]/-->
             <div class="row">
               <div id="col-1" class="col-md-4 oe_mycart">
                 <t t-call="website_sale_one_step_checkout.address"/>
               </div>
 
               <!--Modal for Public User Address-->
-              <!--TODO: Implement Modal-->
               <div class="modal fade" id="address-modal" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog">
                   <div class="modal-content">
@@ -147,12 +144,6 @@
                           <div>
                             <strong t-field="line.product_id.with_context(display_default_code=False).display_name" />
                           </div>
-                          <!--Commented out description of item. Takes up too much space.-->
-                          <!--<div class="text-muted">-->
-                            <!--&lt;!&ndash;<Display only 1st important part of description&ndash;&gt;-->
-                              <!--<span><t t-esc="line.name.splitlines()[1]"/></span><br/>-->
-                            <!--&lt;!&ndash;</t>&ndash;&gt;-->
-                          <!--</div>-->
                         </td>
                         <td>
                           <div t-esc="line.product_uom_qty" />
@@ -165,19 +156,6 @@
                   </table>
                   <t t-call="website_sale.total"/>
                   <div class="clearfix"/>
-                </div>
-                <div groups="website_sale_one_step_checkout.group_website_sale_terms_conditions">
-                  <ul>
-                    <label class="checkbox checkbox-modal-link">
-                      <input type="checkbox" name="terms_conditions"/>
-                      I've accepted the
-                      <a href="javascript:;"
-                         data-page-id="/page/terms_and_conditions/"
-                         title="Terms and Conditions">Terms &amp;
-                        Conditions
-                      </a>
-                    </label>
-                  </ul>
                 </div>
                 <div class="row js_payment">
                   <div class="col-md-12 mb32">
@@ -210,27 +188,6 @@
             </div>
           </div>
           <div class="oe_structure" />
-        </div>
-
-         <!-- Modal for terms and conditions -->
-        <div class="modal fade" id="checkbox-modal" tabindex="-1" role="dialog"
-           aria-labelledby="myModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"
-                    aria-hidden="true">X
-                </button>
-                <h4 class="modal-title">Informationen</h4>
-              </div>
-              <div class="modal-body"></div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
        </t>
     </template>
@@ -318,7 +275,6 @@
             <input type="hidden" name="submitted" value="1" />
             <input type="hidden" name="partner_id" t-att-value="partner_id or '0'" />
             <input type="hidden" name="callback" t-att-value="callback" />
-            <!-- Example -->
             <input type="hidden" name="field_required" t-att-value="mode[1] == 'billing' and 'phone,name' or ''" />
           <div class="clearfix"/>
           <div>
@@ -343,7 +299,6 @@
             </small>
           </h3>
         </div>
-        <!--TODO: ADAPT THIS PART-->
         <t t-if="order.partner_id.id == request.website.user_id.sudo().partner_id.id">
           <div class="col-md-12">
             <div class="row mt8">
@@ -371,8 +326,6 @@
           </div>
         </t>
       </div>
-
-      <!-- TODO: [REF] Don't display Shipping Address for Public User if there is no Billing Addres-->
       <t t-if="not only_services and order.partner_id.id != request.website.user_id.sudo().partner_id.id">
         <div class="row">
           <div class="col-md-12">
@@ -404,50 +357,6 @@
         </div>
       </t>
       <div class="clearfix" />
-    </template>
-
-    <!-- Checkout Terms & Conditions -->
-    <template id="checkout_terms" name="Terms And Conditions">
-      <t t-call="website.layout">
-        <div id="wrap" class="oe_structure oe_empty">
-          <section>
-            <div class="container">
-              <div class="row">
-                <div class="col-md-12">
-                  <h1 class="text-center">Edit your Terms And Conditions</h1>
-                  <h4 class="text-muted">By using the Websitebuilder.
-                    You find the Terms of conditions page by using the link in
-                    the Footer or by clicking on this picture.
-                  </h4>
-                </div>
-              </div>
-            </div>
-          </section>
-          <section class="oe_dark mt16 mb16">
-            <div class="container">
-              <div class="row">
-                <div class="col-md-12">
-                  <a href="/page/terms_and_conditions/">
-                    <img alt="Odoo CMS - a big picture"
-                       class="img img-responsive"
-                       src="/website_sale_one_step_checkout/static/src/img/terms.png"
-                       style="margin: 0 auto;"/>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </t>
-    </template>
-
-    <!-- Include terms and condition link in footer -->
-    <template id="footer_terms" inherit_id="website.footer_default" name="Footer Terms">
-      <xpath expr="//ul[@id='products']/li" position="inside">
-        <li>
-          <a href="/page/terms_and_conditions/">Terms &amp; Conditions</a>
-        </li>
-      </xpath>
     </template>
   </data>
 </odoo>
