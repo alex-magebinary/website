@@ -5,12 +5,16 @@ Provides an All-In-One Checkout for Your Odoo Customer
 
 .. image:: https://github.com/blooparksystems/website/blob/10.0-wip-website_sale_osc/website_sale_one_step_checkout/static/description/osc.png
 
-The One Step Checkout brings different options:
+It keeps your customer on the checkout page while adding or editing an address:
+
+.. image:: https://github.com/blooparksystems/website/blob/10.0-wip-website_sale_osc/website_sale_one_step_checkout/static/description/address.png
+
+Activate the One Step Checkout in your configurations:
 
 .. image:: https://github.com/blooparksystems/website/blob/10.0-wip-website_sale_osc/website_sale_one_step_checkout/static/description/settings.png
 
 One Step Checkout combines all Odoo Checkout steps into one and removes all unnecessary fields and
-questions. Never before has check- out been easier and faster!
+questions. Never before has check-out been easier and faster!
 
 Improving the checkout process results in more customers completing their sales, and this has an immediate impact on your bottom line. It is the single most effective technical change you can make to reduce shopping cart abandonment.
 
@@ -35,16 +39,3 @@ Contributors
 * Robert Rübner (rruebner@bloopark.de)
 * Christoph Giesel (mail@cgiesel.de)
 * Andrei Poehlmann (andrei.poehlmann90@gmail.com)
-
-Maintainer
-----------
-
-.. image:: http://odoo-community.org/logo.png
-   :alt: Odoo Community Association
-   :target: http://odoo-community.org
-
-This module is maintained by the OCA.
-
-OCA, or the Odoo Community Association, is a nonprofit organization whose mission is to support the collaborative development of Odoo features and promote its widespread use.
-
-To contribute to this module, please visit http://odoo-community.org.
