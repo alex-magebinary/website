@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
+# © 2017 bloopark systems (<http://bloopark.de>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 from odoo.addons.website_sale_one_step_checkout.controllers.main import WebsiteSale
-from odoo import http, SUPERUSER_ID
+from odoo import http
 from odoo.http import request
 
 
 class WebsiteSaleOneStepCheckoutDelivery(WebsiteSale):
-    @http.route(['/shop/checkout/change_delivery'], type='json', auth="public", website=True, multilang=True)
+    @http.route(['/shop/checkout/change_delivery'], type='json', auth="public",
+                website=True, multilang=True)
     def change_delivery(self, **post):
         """
         If delivery method was changed in frontend.
 
         Change and apply delivery carrier / amount to sale order.
         """
-        print "change_delivery"
         order = request.website.sale_get_order()
         carrier_id = int(post.get('carrier_id'))
 
@@ -20,7 +22,6 @@ class WebsiteSaleOneStepCheckoutDelivery(WebsiteSale):
 
     def do_change_delivery(self, order, carrier_id):
         """Apply delivery amount to current sale order."""
-        print "do_change_delivery"
         if not order or not carrier_id:
             return {'success': False}
 
@@ -42,23 +43,3 @@ class WebsiteSaleOneStepCheckoutDelivery(WebsiteSale):
         }
 
         return result
-
-# # TODO ??
-# class WebsiteSale(WebsiteSale):
-#     @http.route()
-#     def cart(self, **post):
-#         """If only one active delivery carrier exists apply this delivery to sale order."""
-#         response_object = super(WebsiteSale, self).cart(**post)
-#         values = response_object.qcontext
-#         dc_ids = request.env['delivery.carrier'].sudo().search(
-#             [('active', '=', True), ('website_published', '=', True)])
-#         change_delivery = True
-#         if dc_ids and len(dc_ids) == 1:
-#             for line in values['website_sale_order'].order_line:
-#                 if line.is_delivery:
-#                     change_delivery = False
-#                     break
-#             if change_delivery:
-#                 WebsiteSaleOneStepCheckoutDelivery.do_change_delivery(values['website_sale_order'], dc_ids[0])
-#
-#         return request.render(response_object.template, values)
