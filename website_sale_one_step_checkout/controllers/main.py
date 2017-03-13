@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # © 2017 bloopark systems (<http://bloopark.de>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+from odoo import _, http
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.http import request
-from odoo import http, _
+
 from werkzeug.exceptions import Forbidden
 
 
@@ -60,7 +61,8 @@ class WebsiteSale(WebsiteSale):
 
             return result
 
-        elif order.partner_id.id == request.website.user_id.sudo().partner_id.id:
+        elif order.partner_id.id == request.website.user_id\
+                .sudo().partner_id.id:
             return result
 
     @http.route()
@@ -70,11 +72,11 @@ class WebsiteSale(WebsiteSale):
         else:
             return request.redirect('/shop')
 
-    # TODO CHANGE NAME AND URL?
     @http.route(['/shop/checkout/render_address'], type='json', auth='public',
                 website=True, multilang=True)
     def render_address(self, **kw):
-        Partner = request.env['res.partner'].with_context(show_address=1).sudo()
+        Partner = request.env['res.partner']\
+            .with_context(show_address=1).sudo()
         order = request.website.sale_get_order(force_create=1)
         def_country_id = order.partner_id.country_id
         values, errors = {}, {}
@@ -111,7 +113,6 @@ class WebsiteSale(WebsiteSale):
                     else:
                         return Forbidden()
                 if mode:
-                    # for fetching pre-filled form values
                     values = Partner.browse(partner_id)
             elif partner_id == -1:
                 mode = ('new', 'shipping')
@@ -142,8 +143,9 @@ class WebsiteSale(WebsiteSale):
                 elif mode[1] == 'shipping':
                     order.partner_shipping_id = partner_id
 
-                order.message_partner_ids = [(4, partner_id),
-                                             (3, request.website.partner_id.id)]
+                order.message_partner_ids = [
+                    (4, partner_id), (3, request.website.partner_id.id)
+                ]
                 if not shippings:
                     shippings = Partner.search(
                         [('id', 'child_of',
