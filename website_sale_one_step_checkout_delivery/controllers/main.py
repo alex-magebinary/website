@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 # © 2017 bloopark systems (<http://bloopark.de>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
-from odoo.addons.website_sale_one_step_checkout.controllers.main import WebsiteSale
 from odoo import http
+from odoo.addons.website_sale_one_step_checkout.controllers.main import \
+    WebsiteSale
 from odoo.http import request
 
 
 class WebsiteSaleOneStepCheckoutDelivery(WebsiteSale):
+
     @http.route(['/shop/checkout/change_delivery'], type='json', auth="public",
                 website=True, multilang=True)
     def change_delivery(self, **post):
-        """
-        If delivery method was changed in frontend.
+        """If delivery method was changed in frontend.
 
         Change and apply delivery carrier / amount to sale order.
         """
