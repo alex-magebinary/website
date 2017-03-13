@@ -5,7 +5,6 @@ from odoo import fields, models, api
 
 
 class Website(models.Model):
-    """Adds the fields for options of the OSC."""
     _inherit = 'website'
 
     use_osc = fields.Boolean(

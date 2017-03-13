@@ -5,8 +5,6 @@ from odoo import api, fields, models
 
 
 class WebsiteConfigSettings(models.TransientModel):
-    """Settings for the OSC."""
-
     _inherit = 'website.config.settings'
     use_osc = fields.Boolean(
         related='website_id.use_osc',
@@ -14,14 +12,12 @@ class WebsiteConfigSettings(models.TransientModel):
 
 
 class SaleConfiguration(models.TransientModel):
-    """Settings for the OSC."""
-
     _inherit = 'sale.config.settings'
 
     @api.multi
     def write(self, vals):
-        """
-        Add or remove sale settings.
+        """Add or remove sale settings.
+
         Different shipping address for portal and public users.
         """
         setting = []
