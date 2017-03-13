@@ -8,6 +8,7 @@ from werkzeug.exceptions import Forbidden
 
 
 class WebsiteSale(WebsiteSale):
+
     @http.route(['/shop/checkout'], type='http', auth='public',
                 website=True, multilang=True)
     def checkout(self, **post):
@@ -41,6 +42,7 @@ class WebsiteSale(WebsiteSale):
                 auth='public', website=True, multilang=True)
     def validate_address_form(self):
         order = request.website.sale_get_order()
+
         result = {
             'success': False
         }
@@ -55,6 +57,7 @@ class WebsiteSale(WebsiteSale):
                     return result
 
             result['success'] = True
+
             return result
 
         elif order.partner_id.id == request.website.user_id.sudo().partner_id.id:
