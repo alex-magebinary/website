@@ -4,10 +4,15 @@
 {
     'name': "One Step Checkout Delivery",
     'category': 'Website',
+
     'summary': """Add Delivery Costs to One-Step-Checkout""",
+
     'description': """
 Delivery Costs
 ==============
+
+Enables the selection of a delivery method in the One-Step-Checkout.
+There's no page reloading anymore upon delivery changes.
 """,
     'author': "bloopark systems GmbH & Co. KG",
     'website': "http://www.bloopark.de",
