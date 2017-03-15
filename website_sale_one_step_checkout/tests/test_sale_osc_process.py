@@ -9,11 +9,15 @@ import odoo.tests
 class TestUi(odoo.tests.HttpCase):
     def test_01_public_checkout(self):
         self.phantom_js("/",
-                        "odoo.__DEBUG__.services['web_tour.tour'].run('shop_buy_product_oca_public')",
-                        "odoo.__DEBUG__.services['web_tour.tour'].tours.shop_buy_product_oca_public.ready")
+                        "odoo.__DEBUG__.services['web_tour.tour']"
+                        ".run('shop_buy_product_oca_public')",
+                        "odoo.__DEBUG__.services['web_tour.tour'].tours"
+                        ".shop_buy_product_oca_public.ready")
 
     def test_02_demo_checkout(self):
         self.phantom_js("/",
-                        "odoo.__DEBUG__.services['web_tour.tour'].run('shop_buy_product_oca_demo')",
-                        "odoo.__DEBUG__.services['web_tour.tour'].tours.shop_buy_product_oca_demo.ready",
+                        "odoo.__DEBUG__.services['web_tour.tour']"
+                        ".run('shop_buy_product_oca_demo')",
+                        "odoo.__DEBUG__.services['web_tour.tour'].tours"
+                        ".shop_buy_product_oca_demo.ready",
                         login="demo")
