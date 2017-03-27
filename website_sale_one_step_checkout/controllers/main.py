@@ -68,7 +68,6 @@ class WebsiteSale(WebsiteSale):
     @http.route()
     def address(self, **post):
         if not request.website.use_osc:
-            print "if not request.website.use_osc:", request.website.use_osc
             return super(WebsiteSale, self).address(**post)
         else:
             return request.redirect('/shop')
