@@ -19,33 +19,36 @@ odoo.define("website_sale_one_step_checkout.tour_shop", function (require) {
                 // step 0
                 content: "Select iPad Mini",
                 trigger: 'a[itemprop="name"][href*="ipad-mini"]',
-            }, {
+            },
+            {
                 //step 1
                 content: "Click on 'Add to cart'",
                 trigger: '#add_to_cart',
-            }, {
+            },
+            {
                 //step 2
-                content:    "Proceed to checkout",
-                // need regex, german version: /de_DE/shop/checkout
+                content: "Proceed to checkout",
                 trigger: 'a[href$="/shop/checkout"]',
             },
             {
                 //step 3
-                content:     "Add new shipping address",
-                trigger:   '#add-shipping-address .btn',
-            },  {
+                content: "Add new shipping address",
+                trigger: '#add-shipping-address .btn',
+            },
+            {
                 //step 3
-                content:     "Test with input error",
+                content: "Test with input error",
                 waitFor: '.modal-body.address-form #osc-modal-form',
-                trigger:   '#js_confirm_address.btn',
+                trigger: '#js_confirm_address.btn',
                 run: function () {
                     $("input[name='name']").val("website_sale-test-shoptest");
                 }
-            }, {
+            },
+            {
                 //step 4
-                content:     "Test without input error",
-                waitFor:   'div[id="osc_billing"] .has-error',
-                trigger:   '#js_confirm_address.btn',
+                content: "Test without input error",
+                waitFor: 'div[id="osc_billing"] .has-error',
+                trigger: '#js_confirm_address.btn',
                 run: function () {
                     if ($("input[name='name']").val() === ""){
                         $("input[name='name']").val("website_sale-test-shoptest");}
@@ -57,19 +60,21 @@ odoo.define("website_sale_one_step_checkout.tour_shop", function (require) {
                     $("input[name='zip']").val("39104");
                     $("select[name='country_id']").val("58");
                 },
-            }, {
-            // step 5 TODO: Possible to avoid doing this twice?
-            content: 'Confirm address',
-            trigger:   '#js_confirm_address.btn',
+            },
+            {
+                // step 5
+                content: 'Confirm address',
+                trigger: '#js_confirm_address.btn',
             },
             {
                 // step 6
                 content: 'Confirm payment and wait for redirection to Confirmation page',
                 trigger: '.js_payment .btn'
-            }, {
+            },
+            {
                 // step 7
-                content:     "Finish",
-                trigger:   '.oe_website_sale:contains("Thank you for your order")'
+                content: "Finish",
+                trigger: '.oe_website_sale:contains("Thank you for your order")'
             }
         ]
     );
@@ -87,32 +92,36 @@ odoo.define("website_sale_one_step_checkout.tour_shop", function (require) {
                 content: "Select iPad Mini",
                 trigger: 'a[itemprop="name"][href*="ipad-mini"]',
                 // position: "bottom",
-            }, {
+            },
+            {
                 //step 1
                 content: "Click on 'Add to cart'",
                 trigger: '#add_to_cart',
                 // position: 'bottom',
-            }, {
+            },
+            {
                 //step 2
-                content:    "Proceed to checkout",
-                // need regex, german version: /de_DE/shop/checkout
+                content: "Proceed to checkout",
                 trigger: 'a[href$="/shop/checkout"]',
-            }, {
+            },
+            {
                 //step 3
-                content:     "Add new shipping address",
-                trigger:   '#add-public-user-address .btn',
-            }, {
+                content: "Add new shipping address",
+                trigger: '#add-public-user-address .btn',
+            },
+            {
                 //step 4
-                content:     "Test with input error",
-                trigger:   '#js_confirm_address.btn',
+                content: "Test with input error",
+                trigger: '#js_confirm_address.btn',
                 run: function () {
                     $("input[name='name']").val("website_sale-test-shoptest");
                 }
-            }, {
+            },
+            {
                 //step 5
-                content:     "Test without input error",
-                waitFor:   'div[id="osc_billing"] .has-error',
-                trigger:   '#js_confirm_address.btn',
+                content: "Test without input error",
+                waitFor: 'div[id="osc_billing"] .has-error',
+                trigger: '#js_confirm_address.btn',
                 run: function () {
                     if ($("input[name='name']").val() === ""){
                         $("input[name='name']").val("website_sale-test-shoptest");}
@@ -124,18 +133,21 @@ odoo.define("website_sale_one_step_checkout.tour_shop", function (require) {
                     $("input[name='zip']").val("39104");
                     $("select[name='country_id']").val("58");
                 },
-            }, {
-            // step 6 TODO: Possible to avoid doing this twice?
-            content: 'Confirm address',
-            trigger:   '#js_confirm_address.btn',
-            }, {
+            },
+            {
+                // step 6
+                content: 'Confirm address',
+                trigger: '#js_confirm_address.btn',
+            },
+            {
                 //step 7
                 content: 'Confirm payment and wait for redirection to Confirmation page',
                 trigger: '.js_payment .btn'
-            }, {
+            },
+            {
                 // step 8
-                content:     "Finish",
-                trigger:   '.oe_website_sale:contains("Thank you for your order")'
+                content: "Finish",
+                trigger: '.oe_website_sale:contains("Thank you for your order")'
             }
         ]
     );

@@ -4,16 +4,23 @@ odoo.define("website_sale_one_step_checkout", function (require) {
     var ajax = require('web.ajax');
     var base = require('web_editor.base');
 
+    function removeErrors(){
+        // If the user leaves the modal after a wrong input and
+        // and opens the add-billing-address modal, those
+        // fields will be still highlighted red.
+        $('.oe_website_sale_osc .has-error').removeClass('has-error');
+    }
+
     function getPostAddressFields(elms, data) {
         elms.each(function(index) {
             data[$(this).attr('name')] = $(this).val();
         });
         return data;
-    };
+    }
 
     function validateModalAddress(){
-        var formElems = $('#osc-modal-form input, #osc-modal-form select')
-            , data = {};
+        var formElems = $('#osc-modal-form input, #osc-modal-form select'),
+            data = {};
 
         data = getPostAddressFields(formElems, data);
 
@@ -22,8 +29,8 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
         $('.oe_website_sale_osc .has-error').removeClass('has-error');
 
-        ajax.jsonRpc('/shop/checkout/render_address/', 'call', data)
-            .then(function (result) {
+        ajax.jsonRpc('/shop/checkout/render_address/', 'call', data).
+            then(function (result) {
                 if (result.success) {
                     $('#js_confirm_address').attr("disabled", false);
 
@@ -88,8 +95,8 @@ odoo.define("website_sale_one_step_checkout", function (require) {
 
     function renderModal(data){
         // Render address template into modal body
-        ajax.jsonRpc('/shop/checkout/render_address/', 'call', data)
-            .then(function(result) {
+        ajax.jsonRpc('/shop/checkout/render_address/', 'call', data).
+            then(function(result) {
                 $('#address-modal').modal('show');
                 if(result.success) {
                     $('#address-modal .modal-header h4').html(result.modal_title);
@@ -101,18 +108,11 @@ odoo.define("website_sale_one_step_checkout", function (require) {
             });
     }
 
-    function removeErrors(){
-        // If the user leaves the modal after a wrong input and
-        // and opens the add-billing-address modal, those
-        // fields will be still highlighted red.
-        $('.oe_website_sale_osc .has-error').removeClass('has-error');
-    }
-
-
     function changeShipping(){
         // from website_sale.js
         $('#osc_shipping').on('click', '.js_change_shipping', function() {
-            if (!$('body.editor_enable').length) { //allow to edit button text with editor
+            if (!$('body.editor_enable').length) {
+                //allow to edit button text with editor
                 var $old = $('.all_shipping').find('.panel.border_primary');
                 $old.find('.btn-ship').toggle();
                 $old.addClass('js_change_shipping');
@@ -136,7 +136,7 @@ odoo.define("website_sale_one_step_checkout", function (require) {
         // fields will be still highlighted red.
         removeErrors();
 
-        var partner_id;
+        var partner_id = null;
 
         if(result.partner_id) {
             // This argument will be
@@ -228,26 +228,26 @@ odoo.define("website_sale_one_step_checkout", function (require) {
             ev.preventDefault();
             ev.stopPropagation();
 
-            validateAddressForm()
-            .then(function (result) {
-                if(result.success){
-                    // proceed to payment transaction
-                    ajax.jsonRpc('/shop/checkout/proceed_payment/', 'call', {})
-                        .then(function (){
-                            var $form = $(ev.currentTarget).parents('form');
-                            var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
-                            if (! acquirer_id ){
-                                return false;
-                            }
-                            $form.off('submit');
-                            startTransaction(acquirer_id);
-                        });
-                } else{
-                    return false;
-                    // do nothing, address modal in edit mode
-                    // will get automatically opened at this point
-                }
-            });
+            validateAddressForm().
+                then(function (result) {
+                    if(result.success){
+                        // proceed to payment transaction
+                        ajax.jsonRpc('/shop/checkout/proceed_payment/', 'call', {}).
+                            then(function (){
+                                var $form = $(ev.currentTarget).parents('form');
+                                var acquirer_id = $(ev.currentTarget).parents('div.oe_sale_acquirer_button').first().data('id');
+                                if (! acquirer_id ){
+                                    return false;
+                                }
+                                $form.off('submit');
+                                startTransaction(acquirer_id);
+                            });
+                    } else{
+                        return false;
+                        // do nothing, address modal in edit mode
+                        // will get automatically opened at this point
+                    }
+                });
             return false;
         });
     });
