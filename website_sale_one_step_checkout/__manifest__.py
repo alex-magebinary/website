@@ -3,14 +3,14 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
     'name': 'One Step Checkout',
-    'category': 'Website',
+    'category': 'e-commerce',
     'summary': 'Provide an All-In-One Checkout for your website e-commerce',
-    'version': '1.0',
-    'author': "bloopark systems GmbH & Co. KG",
+    'version': '10.0.1.0.0',
+    'author': "bloopark systems GmbH & Co. KG,"
+              "Odoo Community Association (OCA)",
     'website': "http://www.bloopark.de",
     'license': 'AGPL-3',
     'depends': [
-        'website',
         'website_sale'
     ],
     'data': [

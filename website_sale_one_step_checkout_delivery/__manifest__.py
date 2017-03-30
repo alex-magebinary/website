@@ -3,21 +3,13 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 {
     'name': "One Step Checkout Delivery",
-    'category': 'Website',
-
+    'category': 'e-commerce',
     'summary': """Add Delivery Costs to One-Step-Checkout""",
-
-    'description': """
-Delivery Costs
-==============
-
-Enables the selection of a delivery method in the One-Step-Checkout.
-There's no page reloading anymore upon delivery changes.
-""",
-    'author': "bloopark systems GmbH & Co. KG",
+    'author': "bloopark systems GmbH & Co. KG,"
+              "Odoo Community Association (OCA)",
     'website': "http://www.bloopark.de",
     'license': 'AGPL-3',
-    'version': '1.0',
+    'version': '10.0.1.0.0',
     'depends': [
         'website_sale_delivery',
         'website_sale_one_step_checkout'],

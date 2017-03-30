@@ -2,31 +2,17 @@
    :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
    :alt: License: AGPL-3
 
-================================
-Website Sale - One Step Checkout
-================================
+=========================================
+Website Sale - One Step Checkout Delivery
+=========================================
 
-Description
-===========
-
-This module provides an All-In-One checkout for your Odoo customer.
-
-.. image:: /website_sale_one_step_checkout/static/description/osc.png
-
-It also keeps your customer on the checkout page while adding or editing an address:
-
-.. image:: /website_sale_one_step_checkout/static/description/address.png
-
-One Step Checkout combines all Odoo checkout steps into one and removes all unnecessary fields and
-questions. Never before has check-out been easier and faster!
-
-Improving the checkout process results in more customers completing their sales, and this has an immediate impact on your bottom line.
-It is the single most effective technical change you can make to reduce shopping cart abandonment.
+This module extends the functionality of the  *Website Sale - One Step Checkout* to support delivery carriers.
+It enables the selection of a delivery method in the One-Step-Checkout. There's no page reloading upon delivery changes anymore.
 
 Installation
 ============
 
-To install this module, you need to install following module: website_sale_one_step_checkout
+To install this module, you need to install following module: website_sale_one_step_checkout_delivery
 
 Usage
 =====
@@ -36,14 +22,6 @@ To use this module, you need to:
 #. Go to the online shop in the frontend
 #. Buy something
 
-
-Known issues / Roadmap
-======================
-
-* For now, this add-on will add a One Step Checkout to the website_sale add-on.
-* Check if the One Step Checkout works with website_event_register_free_with_sale.
-* Checkout form should have HTML5 validation, but that should be in core or a
-  separate module.
 
 Bug Tracker
 ===========
