@@ -5,8 +5,7 @@
     'name': "One Step Checkout Delivery",
     'category': 'e-commerce',
     'summary': """Add Delivery Costs to One-Step-Checkout""",
-    'author': "bloopark systems GmbH & Co. KG,"
-              "Odoo Community Association (OCA)",
+    'author': "bloopark systems GmbH & Co. KG",
     'website': "http://www.bloopark.de",
     'license': 'AGPL-3',
     'version': '10.0.1.0.0',
