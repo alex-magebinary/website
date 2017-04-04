@@ -69,6 +69,9 @@ class Website(models.Model):
         if req is None:
             req = request.httprequest
         default = self.get_current_website(cr, uid, context=context).default_lang_code
+        req_url = re.match('(.*)/page/homepage(.*)', req.url)
+        if bool(req_url):
+            req.url = req_url.group(1) + req_url.group(2)
         if request.lang != default:
             url = req.url_root[0:-1] + '/' + request.lang + req.path
             if req.query_string:
